@@ -15,3 +15,40 @@ buildNumber.properties
 .project
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+out/
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Local SQLite database files
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# TLS keystores, certificates, private keys — never commit secrets
+*.jks
+*.p12
+*.keystore
+*.pem
+*.key
+*.crt
+*.csr
+
+# Local secrets / API credentials (YouTube, Spotify, ...)
+.env
+*.env
+secrets.properties
+*-local.properties
