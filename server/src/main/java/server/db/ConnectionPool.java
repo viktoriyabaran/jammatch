@@ -36,4 +36,16 @@ public class ConnectionPool {
             connectionQueue.offer(connection);
         }
     }
+
+    public void closePool() {
+        for (Connection conn : connectionQueue) {
+            try {
+                if (conn != null && !conn.isClosed()) {
+                    conn.close();
+                }
+            } catch (SQLException e) {
+            }
+        }
+        connectionQueue.clear();
+    }
 }
