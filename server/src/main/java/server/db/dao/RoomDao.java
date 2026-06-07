@@ -16,16 +16,18 @@ public class RoomDao {
         this.connectionPool = connectionPool;
     }
 
-    public int createRoom(String roomCode, int hostId, int totalRounds, int roundDurationSec)
-            throws InterruptedException, SQLException {
-        String sql = "INSERT INTO rooms (room_code, host_id, total_rounds, round_duration_sec) VALUES (?, ?, ?, ?)";
+    public int createRoom(String roomCode, String roomName, int hostId, int maxPlayers, int totalRounds,
+            int roundDurationSec) throws InterruptedException, SQLException {
+        String sql = "INSERT INTO rooms (room_code, room_name, host_id, max_players, total_rounds, round_duration_sec) VALUES (?, ?, ?, ?, ?, ?)";
         Connection conn = connectionPool.getConnection();
 
         try (PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setString(1, roomCode);
-            pstmt.setInt(2, hostId);
-            pstmt.setInt(3, totalRounds);
-            pstmt.setInt(4, roundDurationSec);
+            pstmt.setString(2, roomName);
+            pstmt.setInt(3, hostId);
+            pstmt.setInt(4, maxPlayers);
+            pstmt.setInt(5, totalRounds);
+            pstmt.setInt(6, roundDurationSec);
             pstmt.executeUpdate();
 
             try (ResultSet rs = pstmt.getGeneratedKeys()) {

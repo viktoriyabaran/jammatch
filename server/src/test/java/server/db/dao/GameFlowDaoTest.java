@@ -47,7 +47,7 @@ class GameFlowDaoTest {
     @Test
     void testFullGameFlow() throws Exception {
         int hostId = userDao.insertUser("host_player");
-        int roomId = roomDao.createRoom("PLAY99", hostId, 3, 30);
+        int roomId = roomDao.createRoom("PLAY99", "Test Room", hostId, 10, 3, 30);
 
         int gameId = gameDao.createGame(roomId);
         assertTrue(gameId > 0, "Game ID should be generated");

@@ -6,7 +6,9 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS rooms (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     room_code TEXT NOT NULL UNIQUE,
+    room_name TEXT NOT NULL,
     host_id INTEGER NOT NULL,
+    max_players INTEGER DEFAULT 10,
     total_rounds INTEGER DEFAULT 5,
     round_duration_sec INTEGER DEFAULT 30,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

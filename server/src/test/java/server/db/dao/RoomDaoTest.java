@@ -44,7 +44,7 @@ class RoomDaoTest {
         assertTrue(hostId > 0, "Host should be created successfully");
 
         String testCode = "JAM123";
-        int roomId = roomDao.createRoom(testCode, hostId, 5, 30);
+        int roomId = roomDao.createRoom(testCode, "My Cool Room", hostId, 10, 5, 30);
         assertTrue(roomId > 0, "Room ID should be generated and greater than 0");
 
         Optional<Integer> foundId = roomDao.getRoomIdByCode(testCode);
