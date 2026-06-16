@@ -57,4 +57,15 @@ public class RoomDao {
         }
         return Optional.empty();
     }
+
+    public void closeRoom(String roomCode) throws InterruptedException, SQLException {
+        String sql = "DELETE FROM rooms WHERE room_code = ?";
+        Connection conn = connectionPool.getConnection();
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, roomCode);
+            pstmt.executeUpdate();
+        } finally {
+            connectionPool.releaseConnection(conn);
+        }
+    }
 }

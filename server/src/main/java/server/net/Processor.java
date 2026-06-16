@@ -107,9 +107,32 @@ public class Processor implements Runnable {
                 case LEAVE_ROOM:
                     int leaveUserId = msg.getbUserId();
                     Optional<GameRoom> userRoom = roomManager.getRoomByUserId(leaveUserId);
-                    roomManager.removePlayerFromAllRooms(leaveUserId);
 
-                    userRoom.ifPresent(this::broadcastLobbyUpdate);
+                    if (userRoom.isPresent()) {
+                        GameRoom room = userRoom.get();
+                        if (room.getHostId() == leaveUserId) {
+                            String code = room.getRoomCode();
+                            java.util.List<PlayerInfo> playersToNotify = room.getPlayers();
+
+                            roomManager.removeRoom(code);
+                            roomDao.closeRoom(code);
+
+                            common.messages.RoomMessages.RoomClosed closedMessage = new common.messages.RoomMessages.RoomClosed(
+                                    "Host left the room");
+                            byte[] closedPayload = gson.toJson(closedMessage).getBytes(StandardCharsets.UTF_8);
+
+                            for (PlayerInfo p : playersToNotify) {
+                                if (p.id() != leaveUserId) {
+                                    Message eventMsg = new Message(CommandType.ROOM_CLOSED.code(), p.id(),
+                                            closedPayload);
+                                    sessionManager.sendToUser(p.id(), new Packet((byte) 0, 0, eventMsg));
+                                }
+                            }
+                        } else {
+                            room.removePlayer(leaveUserId);
+                            broadcastLobbyUpdate(room);
+                        }
+                    }
                     return buildSuccess(request, "{\"status\":\"OK\"}");
 
                 case KICK_PLAYER:
