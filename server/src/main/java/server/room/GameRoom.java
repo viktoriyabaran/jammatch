@@ -15,6 +15,7 @@ public class GameRoom {
     private final List<PlayerInfo> players = new ArrayList<>();
     private final ReentrantLock lock = new ReentrantLock();
     private boolean gameStarted = false;
+    private int currentRound = 0;
 
     public GameRoom(String roomCode, String roomName, int hostId, RoomSettings settings) {
         this.roomCode = roomCode;
@@ -94,6 +95,26 @@ public class GameRoom {
         lock.lock();
         try {
             this.gameStarted = gameStarted;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public int getCurrentRound() {
+        // CONCURRENCY: Захист доступу до стану кімнати
+        lock.lock();
+        try {
+            return currentRound;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void setCurrentRound(int round) {
+        // CONCURRENCY: Захист доступу до стану кімнати
+        lock.lock();
+        try {
+            this.currentRound = round;
         } finally {
             lock.unlock();
         }
