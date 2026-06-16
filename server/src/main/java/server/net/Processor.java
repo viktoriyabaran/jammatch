@@ -112,6 +112,27 @@ public class Processor implements Runnable {
                     userRoom.ifPresent(this::broadcastLobbyUpdate);
                     return buildSuccess(request, "{\"status\":\"OK\"}");
 
+                case KICK_PLAYER:
+                    common.messages.RoomMessages.KickPlayer kickData = gson.fromJson(payloadStr,
+                            common.messages.RoomMessages.KickPlayer.class);
+                    int requesterId = msg.getbUserId();
+                    java.util.Optional<GameRoom> hostRoom = roomManager.getRoomByUserId(requesterId);
+
+                    if (hostRoom.isEmpty() || hostRoom.get().getHostId() != requesterId) {
+                        return buildError(request, "Only host can kick players");
+                    }
+
+                    if (kickData.targetUserId() == requesterId) {
+                        return buildError(request, "Host cannot kick themselves");
+                    }
+
+                    GameRoom r = hostRoom.get();
+                    if (r.removePlayer(kickData.targetUserId())) {
+                        roomManager.removePlayerFromAllRooms(kickData.targetUserId());
+                        broadcastLobbyUpdate(r); // Оновлюємо лоббі для інших
+                    }
+                    return buildSuccess(request, "{\"status\":\"OK\"}");
+
                 default:
                     return buildSuccess(request, "{\"status\":\"OK\"}");
             }

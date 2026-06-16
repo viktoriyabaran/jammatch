@@ -24,6 +24,8 @@ public class GameRoom {
     }
 
     public boolean addPlayer(int id, String nickname, boolean hasPlaylist) {
+        // CONCURRENCY: Запобігаємо race condition при одночасному підключенні, щоб не
+        // перевищити ліміт maxPlayers
         lock.lock();
         try {
             if (gameStarted || players.size() >= settings.maxPlayers()) {
@@ -42,6 +44,7 @@ public class GameRoom {
     }
 
     public boolean removePlayer(int id) {
+        // CONCURRENCY: Захист доступу до стану кімнати
         lock.lock();
         try {
             return players.removeIf(p -> p.id() == id);
@@ -67,6 +70,7 @@ public class GameRoom {
     }
 
     public List<PlayerInfo> getPlayers() {
+        // CONCURRENCY: Захист доступу до стану кімнати
         lock.lock();
         try {
             return new ArrayList<>(players);
@@ -76,6 +80,7 @@ public class GameRoom {
     }
 
     public boolean isGameStarted() {
+        // CONCURRENCY: Захист доступу до стану кімнати
         lock.lock();
         try {
             return gameStarted;
@@ -85,6 +90,7 @@ public class GameRoom {
     }
 
     public void setGameStarted(boolean gameStarted) {
+        // CONCURRENCY: Захист доступу до стану кімнати
         lock.lock();
         try {
             this.gameStarted = gameStarted;
