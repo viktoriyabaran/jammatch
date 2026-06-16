@@ -30,17 +30,19 @@ public class GameServer {
         UserDao userDao = new UserDao(pool);
         RoomDao roomDao = new RoomDao(pool);
         RoomManager roomManager = new RoomManager();
+        SessionManager sessionManager = new SessionManager();
 
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             while (!Thread.currentThread().isInterrupted()) {
                 Socket clientSocket = serverSocket.accept();
-                clientThreads.submit(() -> handleClient(clientSocket, crypto, userDao, roomDao, roomManager));
+                clientThreads.submit(
+                        () -> handleClient(clientSocket, crypto, userDao, roomDao, roomManager, sessionManager));
             }
         }
     }
 
     private static void handleClient(Socket socket, CryptoService crypto, UserDao userDao, RoomDao roomDao,
-            RoomManager roomManager) {
+            RoomManager roomManager, SessionManager sessionManager) {
         ExecutorService pipeline = Executors.newFixedThreadPool(4);
         try {
             MessageReceiver receiver = new SocketMessageReceiver(socket);
@@ -52,7 +54,7 @@ public class GameServer {
             BlockingQueue<byte[]> outgoing = new LinkedBlockingQueue<>();
 
             pipeline.submit(new Decryptor(incoming, decoded, crypto));
-            pipeline.submit(new Processor(decoded, responses, userDao, roomDao, roomManager));
+            pipeline.submit(new Processor(decoded, responses, userDao, roomDao, roomManager, sessionManager));
             pipeline.submit(new Encryptor(responses, outgoing, crypto));
             pipeline.submit(new Sender(sender, outgoing));
 

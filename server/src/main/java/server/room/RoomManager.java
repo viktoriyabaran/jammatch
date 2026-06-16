@@ -42,4 +42,10 @@ public class RoomManager {
         }
         return sb.toString();
     }
+
+    public Optional<GameRoom> getRoomByUserId(int userId) {
+        return rooms.values().stream()
+                .filter(r -> r.getPlayers().stream().anyMatch(p -> p.id() == userId))
+                .findFirst();
+    }
 }
