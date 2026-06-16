@@ -30,6 +30,10 @@ public class RoomManager {
         return rooms.remove(roomCode) != null;
     }
 
+    public void removePlayerFromAllRooms(int userId) {
+        rooms.values().forEach(room -> room.removePlayer(userId));
+    }
+
     private String generateCode() {
         StringBuilder sb = new StringBuilder(CODE_LENGTH);
         for (int i = 0; i < CODE_LENGTH; i++) {

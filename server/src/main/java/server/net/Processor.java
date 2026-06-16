@@ -7,6 +7,7 @@ import common.messages.SessionMessages.ClientLogin;
 import common.messages.RoomMessages.RoomConfig;
 import common.messages.RoomMessages.RoomSettings;
 import common.messages.RoomMessages.CreateRoomResult;
+import common.messages.RoomMessages.JoinRoom;
 import server.db.dao.RoomDao;
 import server.db.dao.UserDao;
 import server.room.GameRoom;
@@ -68,6 +69,31 @@ public class Processor implements Runnable {
 
                     CreateRoomResult result = new CreateRoomResult(newRoom.getRoomCode());
                     return buildSuccess(request, gson.toJson(result));
+
+                case JOIN_ROOM:
+                    JoinRoom joinData = gson.fromJson(payloadStr, JoinRoom.class);
+                    int joinUserId = msg.getbUserId();
+                    java.util.Optional<String> nicknameOpt = userDao.getUserNickname(joinUserId);
+
+                    if (nicknameOpt.isEmpty()) {
+                        return buildError(request, "User not found");
+                    }
+
+                    java.util.Optional<GameRoom> roomOpt = roomManager.getRoom(joinData.roomCode());
+                    if (roomOpt.isEmpty()) {
+                        return buildError(request, "Room not found");
+                    }
+
+                    if (!roomOpt.get().addPlayer(joinUserId, nicknameOpt.get(), false)) {
+                        return buildError(request, "Cannot join room");
+                    }
+
+                    return buildSuccess(request, "{\"status\":\"OK\"}");
+
+                case LEAVE_ROOM:
+                    int leaveUserId = msg.getbUserId();
+                    roomManager.removePlayerFromAllRooms(leaveUserId);
+                    return buildSuccess(request, "{\"status\":\"OK\"}");
 
                 default:
                     return buildSuccess(request, "{\"status\":\"OK\"}");
