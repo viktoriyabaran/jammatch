@@ -77,7 +77,6 @@ public class Processor implements Runnable {
 
                     if (nicknameOpt.isEmpty()) {
                         return buildError(request, "User not found");
-                    }
 
                     java.util.Optional<GameRoom> roomOpt = roomManager.getRoom(joinData.roomCode());
                     if (roomOpt.isEmpty()) {
