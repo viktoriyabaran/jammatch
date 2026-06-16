@@ -46,7 +46,7 @@ class GameRoomTest {
         latch.countDown();
         done.await();
 
-        assertEquals(5, room.getPlayers().size(), "В кімнаті не може бути більше гравців, ніж ліміт");
-        assertEquals(4, successCount.get(), "Тільки 4 додаткових гравців мали успішно зайти");
+        assertEquals(5, room.getPlayers().size(), "There cannot be more players in the room than the limit");
+        assertEquals(4, successCount.get(), "Only 4 additional players had to successfully log in");
     }
 }
