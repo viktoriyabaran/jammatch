@@ -1,9 +1,15 @@
 package server.net;
 
+import com.google.gson.Gson;
 import common.protocol.*;
 import common.contracts.*;
+import common.messages.SessionMessages.ClientLogin;
+import common.messages.RoomMessages.RoomConfig;
+import common.messages.RoomMessages.RoomSettings;
+import common.messages.RoomMessages.CreateRoomResult;
 import server.db.dao.RoomDao;
 import server.db.dao.UserDao;
+import server.room.GameRoom;
 import server.room.RoomManager;
 
 import java.nio.charset.StandardCharsets;
@@ -19,6 +25,7 @@ public class Processor implements Runnable {
     private final UserDao userDao;
     private final RoomDao roomDao;
     private final RoomManager roomManager;
+    private final Gson gson = new Gson();
 
     public Processor(BlockingQueue<Packet> input, BlockingQueue<Packet> output, UserDao userDao, RoomDao roomDao,
             RoomManager roomManager) {
@@ -32,20 +39,56 @@ public class Processor implements Runnable {
     private Packet process(Packet request) {
         Message msg = request.getbMsg();
         CommandType command;
+
         try {
             command = CommandType.fromCode(msg.getcType());
         } catch (IllegalArgumentException e) {
-            return buildResponse(request, ResponseCode.INTERNAL_ERROR, "Unknown command code");
+            return buildError(request, "Unknown command code");
         }
 
-        return buildResponse(request, ResponseCode.OK, null);
+        try {
+            String payloadStr = new String(msg.getMessage(), StandardCharsets.UTF_8);
+            System.out.println("[Processor " + id + "] Received " + command + ": " + payloadStr);
+
+            switch (command) {
+                case CLIENT_LOGIN:
+                    ClientLogin loginData = gson.fromJson(payloadStr, ClientLogin.class);
+                    int userId = userDao.insertUser(loginData.nickname());
+                    return buildSuccess(request, String.valueOf(userId));
+
+                case CREATE_ROOM:
+                    RoomConfig config = gson.fromJson(payloadStr, RoomConfig.class);
+                    RoomSettings settings = new RoomSettings(config.maxPlayers(), config.rounds(),
+                            config.roundDurationSeconds());
+                    int hostId = msg.getbUserId();
+
+                    GameRoom newRoom = roomManager.createRoom(config.roomName(), hostId, settings);
+                    roomDao.createRoom(newRoom.getRoomCode(), config.roomName(), hostId, config.maxPlayers(),
+                            config.rounds(), config.roundDurationSeconds());
+
+                    CreateRoomResult result = new CreateRoomResult(newRoom.getRoomCode());
+                    return buildSuccess(request, gson.toJson(result));
+
+                default:
+                    return buildSuccess(request, "{\"status\":\"OK\"}");
+            }
+        } catch (Exception e) {
+            System.err.println("[Processor] Error handling " + command + ": " + e.getMessage());
+            return buildError(request, e.getMessage());
+        }
     }
 
-    private Packet buildResponse(Packet request, ResponseCode status, String errorMessage) {
-        String body = status == ResponseCode.OK
-                ? "{\"status\":\"OK\"}"
-                : "{\"status\":\"ERROR\",\"message\":\"" + escape(errorMessage) + "\"}";
+    private Packet buildSuccess(Packet request, String body) {
+        byte[] payload = body.getBytes(StandardCharsets.UTF_8);
+        Message responseMsg = new Message(
+                request.getbMsg().getcType(),
+                request.getbMsg().getbUserId(),
+                payload);
+        return new Packet(request.getbSrc(), request.getbPktId(), responseMsg);
+    }
 
+    private Packet buildError(Packet request, String errorMessage) {
+        String body = "{\"status\":\"ERROR\",\"message\":\"" + escape(errorMessage) + "\"}";
         byte[] payload = body.getBytes(StandardCharsets.UTF_8);
         Message responseMsg = new Message(
                 request.getbMsg().getcType(),
