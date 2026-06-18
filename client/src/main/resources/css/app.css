@@ -1,0 +1,69 @@
+.screen {
+    -fx-background-color: #f5f6fa;
+    -fx-padding: 40;
+    -fx-alignment: center;
+}
+
+/* backgrounds */
+
+.bg-bloom {
+    -fx-background-image: url("../backgrounds/sssly-bg-bloom.png");
+    -fx-background-size: cover;
+    -fx-background-position: center;
+}
+
+.bg-center {
+    -fx-background-image: url("../backgrounds/sssly-bg-center.png");
+    -fx-background-size: cover;
+    -fx-background-position: center;
+}
+
+.bg-corner {
+    -fx-background-image: url("../backgrounds/sssly-bg-corner.png");
+    -fx-background-size: cover;
+    -fx-background-position: center;
+}
+
+.bg-halo {
+    -fx-background-image: url("../backgrounds/sssly-bg-halo.png");
+    -fx-background-size: cover;
+    -fx-background-position: center;
+}
+
+/* badges */
+
+.badge-1 { -fx-background-color: -badge-1; }
+.badge-2 { -fx-background-color: -badge-2; }
+.badge-3 { -fx-background-color: -badge-3; }
+.badge-4 { -fx-background-color: -badge-4; }
+.badge-5 { -fx-background-color: -badge-5; }
+.badge-6 { -fx-background-color: -badge-6; }
+.badge-7 { -fx-background-color: -badge-7; }
+
+.btn {
+    -fx-background-radius: 8;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+    -fx-font-size: 14px;
+}
+
+.btn-primary {
+    -fx-background-color: #6c5ce7;
+    -fx-text-fill: white;
+}
+
+.btn-primary:hover {
+    -fx-background-color: #5a4bd4;
+}
+
+.btn-secondary {
+    -fx-background-color: transparent;
+    -fx-text-fill: #2d3436;
+    -fx-border-color: #b2bec3;
+    -fx-border-radius: 8;
+}
+
+.btn-danger {
+    -fx-background-color: #d63031;
+    -fx-text-fill: white;
+}

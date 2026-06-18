@@ -1,0 +1,28 @@
+.root {
+    /* core */
+    -canvas: #08040c;
+    -surface: #14091c;
+    -accent-pink: #ff3d9a;
+    -accent-border: #e23a96;
+    -accent-text: #ee49a0;
+    -lavender: #b09cec;
+    -ink: #f4eef8;
+
+    /* text & lines */
+    -ink-dim: #9a90a6;
+    -muted: #7d7488;
+    -line-mute: #5e5a66;
+    -line-faint: #241830;
+    -error: #ff5a6e;
+    -error-text: #ff8a96;
+    -success: #3ae0a0;
+
+    /* player badges */
+    -badge-1: #ff3d9a;
+    -badge-2: #9b6dff;
+    -badge-3: #36d6e0;
+    -badge-4: #b6e23a;
+    -badge-5: #ff6b5e;
+    -badge-6: #3aa0ff;
+    -badge-7: #3ae0a0;
+}
