@@ -9,7 +9,7 @@
 .subtitle {
     -fx-font-family: "Space Mono";
     -fx-font-size: 15px;
-    -fx-text-fill: #e9e2f0;
+    -fx-text-fill: -ink;
 }
 
 .button {
@@ -66,25 +66,25 @@
 .wordmark {
     -fx-font-family: "Space Grotesk Light";
     -fx-font-size: 88px;
-    -fx-text-fill: #f7f2fb;
+    -fx-text-fill: -ink;
 }
 
 .display {
     -fx-font-family: "Space Grotesk Light";
     -fx-font-size: 72px;
-    -fx-text-fill: #f7f2fb;
+    -fx-text-fill: -ink;
 }
 
 .headline {
     -fx-font-family: "Space Grotesk Light";
     -fx-font-size: 48px;
-    -fx-text-fill: #f7f2fb;
+    -fx-text-fill: -ink;
 }
 
 .title {
     -fx-font-family: "Space Grotesk Light";
     -fx-font-size: 38px;
-    -fx-text-fill: #f7f2fb;
+    -fx-text-fill: -ink;
 }
 
 .numeral {

@@ -11,11 +11,15 @@
     /* text & lines */
     -ink-dim: #9a90a6;
     -muted: #7d7488;
+    -line-bright: #b6abbf;
     -line-mute: #5e5a66;
     -line-faint: #241830;
+    -disabled-line: #2a2230;
     -error: #ff5a6e;
     -error-text: #ff8a96;
+    -disabled-text: #4a4452;
     -success: #3ae0a0;
+
 
     /* player badges */
     -badge-1: #ff3d9a;
