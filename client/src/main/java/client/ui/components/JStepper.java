@@ -6,7 +6,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 
-public class Stepper extends HBox {
+public class JStepper extends HBox {
 
     private final int min;
     private final int max;
@@ -15,7 +15,7 @@ public class Stepper extends HBox {
     private final Label valueLabel = new Label();
     private int value;
 
-    public Stepper(String label, int min, int max, int step, int initial, String suffix) {
+    public JStepper(String label, int min, int max, int step, int initial, String suffix) {
         this.min = min;
         this.max = max;
         this.step = step;
