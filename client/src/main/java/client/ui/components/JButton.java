@@ -13,6 +13,10 @@ public class JButton extends Button {
     public enum Variant { PRIMARY, SECONDARY, GHOST }
 
     public JButton(String text, Variant variant, Runnable onClick) {
+        this(text, variant, true, onClick);
+    }
+
+    public JButton(String text, Variant variant, boolean chevron, Runnable onClick) {
         getStyleClass().addAll("btn", switch (variant) {
             case PRIMARY   -> "btn-primary";
             case SECONDARY -> "btn-secondary";
@@ -23,16 +27,18 @@ public class JButton extends Button {
         label.getStyleClass().add("btn-text");
 
         var content = new HBox(label);
-        content.setAlignment(Pos.CENTER_LEFT);
 
-        if (variant != Variant.GHOST) {
+        if (chevron && variant != Variant.GHOST) {
+            content.setAlignment(Pos.CENTER_LEFT);
             var spacer = new Region();
             HBox.setHgrow(spacer, Priority.ALWAYS);
-            var chevron = new Label("›");
-            chevron.getStyleClass().add("chev");
-            content.getChildren().addAll(spacer, chevron);
+            var chevronLabel = new Label("›");
+            chevronLabel.getStyleClass().add("chev");
+            content.getChildren().addAll(spacer, chevronLabel);
             content.prefWidthProperty().bind(widthProperty().subtract(48));
             setMaxWidth(Double.MAX_VALUE);
+        } else {
+            content.setAlignment(Pos.CENTER);
         }
 
         setGraphic(content);
