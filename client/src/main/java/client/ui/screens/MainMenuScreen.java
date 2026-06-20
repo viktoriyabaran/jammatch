@@ -3,11 +3,9 @@ package client.ui.screens;
 import client.ui.Router;
 import client.ui.components.JButton;
 import client.ui.components.JLabel;
-import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -37,7 +35,7 @@ public class MainMenuScreen extends BorderPane {
         joinRoomButton.setMinWidth(COLUMN_WIDTH);
         joinRoomButton.setMaxWidth(COLUMN_WIDTH);
 
-        var about = new JLabel("ABOUT / HOW TO PLAY ›", JLabel.Type.NAV);
+        var about = new JLabel("ABOUT / HOW TO PLAY  ›", JLabel.Type.NAV);
         about.setCursor(Cursor.HAND);
         about.setOnMouseClicked(e -> { /* TODO: router.show(new AboutScreen(router)); */ });
 
