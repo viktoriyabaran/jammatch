@@ -330,3 +330,21 @@
     -fx-pref-width: 0;
     -fx-pref-height: 0;
 }
+
+/* tags */
+
+.tag {
+    -fx-font-family: "Space Mono";
+    -fx-font-size: 11px;
+    -fx-text-fill: -accent-text;
+    -fx-padding: 5 9;
+}
+
+.row__kick {
+    -fx-font-family: "Space Mono";
+    -fx-font-size: 11px;
+    -fx-text-fill: -ink-dim;
+    -fx-cursor: hand;
+}
+
+.row__kick:hover { -fx-text-fill: -ink; }

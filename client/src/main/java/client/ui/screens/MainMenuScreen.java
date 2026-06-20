@@ -17,7 +17,7 @@ public class MainMenuScreen extends BorderPane {
     public MainMenuScreen(Router router) {
         var headline = new JLabel("Welcome, love", JLabel.Type.HEADLINE);
         var notYou = new JLabel("NOT YOU?", JLabel.Type.NAV);
-        var changeNickname = new JLabel("CHANGE NICKNAME ›", JLabel.Type.SECTION);
+        var changeNickname = new JLabel("CHANGE NICKNAME  ›", JLabel.Type.SECTION);
         changeNickname.setCursor(Cursor.HAND);
         changeNickname.setOnMouseClicked(e -> router.show(new LoginScreen(router)));
 
