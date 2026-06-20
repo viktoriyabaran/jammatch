@@ -3,9 +3,12 @@ package client.ui.screens;
 import client.ui.AppContext;
 import client.ui.components.JButton;
 import client.ui.components.JLabel;
+import common.messages.RoomMessages.LobbyUpdate;
+import common.messages.RoomMessages.PlayerInfo;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
@@ -19,35 +22,37 @@ import java.util.List;
 
 public class LobbyScreen extends BorderPane {
 
-    private record Player(String name, boolean isHost, boolean you) {}
-
-    private static final List<Player> PLAYERS = List.of(
-            new Player("vi", true, true),
-            new Player("sofie", false, false),
-            new Player("mark", false, false),
-            new Player("andrew", false, false),
-            new Player("mia", false, false));
+    private final AppContext ctx;
 
     public LobbyScreen(AppContext ctx) {
-        setTop(buildHeader(ctx));
-        setCenter(buildPlayers());
-        setBottom(buildActions(ctx));
+        this.ctx = ctx;
         setPadding(new Insets(36, 80, 36, 80));
         getStyleClass().add("bg-corner");
+
+        ctx.api().onRoomClosed(reason -> {
+            new Alert(Alert.AlertType.INFORMATION, reason).showAndWait();
+            ctx.show(new MainMenuScreen(ctx));
+        });
+        ctx.api().onLobbyUpdate(this::render);
     }
 
-    private HBox buildHeader(AppContext ctx) {
+    private void render(LobbyUpdate update) {
+        boolean host = update.hostId() == ctx.session().userId();
+        setTop(buildHeader(update));
+        setCenter(buildPlayers(update, host));
+        setBottom(buildActions(host));
+    }
+
+    private HBox buildHeader(LobbyUpdate update) {
         var sectionName = new JLabel("LOBBY", JLabel.Type.SECTION);
-        var roomName = new JLabel("your room", JLabel.Type.DISPLAY);
-        var roomCode = new JLabel("X7K9P2", JLabel.Type.CODE);
+        var roomName = new JLabel(update.roomName(), JLabel.Type.DISPLAY);
+        var roomCode = new JLabel(update.roomCode(), JLabel.Type.CODE);
         var roomInfo = new VBox(6, sectionName, roomName, roomCode);
 
-        var editSettings = new JLabel("EDIT SETTINGS  ›", JLabel.Type.SECTION);
-        editSettings.setCursor(Cursor.HAND);
-        editSettings.setOnMouseClicked(e -> ctx.show(new CreateRoomScreen(ctx)));
-        var roundCount = new JLabel("5 ROUNDS", JLabel.Type.SUBTITLE);
-        var roundDuration = new JLabel("30 SECONDS / ROUND", JLabel.Type.SUBTITLE);
-        var gameInfo = new VBox(6, editSettings, roundCount, roundDuration);
+        var roundCount = new JLabel(update.settings().rounds() + " ROUNDS", JLabel.Type.SUBTITLE);
+        var roundDuration = new JLabel(update.settings().roundDurationSeconds() + " SECONDS / ROUND",
+                JLabel.Type.SUBTITLE);
+        var gameInfo = new VBox(6, roundCount, roundDuration);
         gameInfo.setAlignment(Pos.TOP_RIGHT);
 
         var spacer = new Region();
@@ -57,8 +62,10 @@ public class LobbyScreen extends BorderPane {
         return header;
     }
 
-    private VBox buildPlayers() {
-        var label = new JLabel("PLAYERS · " + PLAYERS.size() + " / 8", JLabel.Type.FIELD);
+    private VBox buildPlayers(LobbyUpdate update, boolean host) {
+        List<PlayerInfo> players = update.players();
+        var label = new JLabel("PLAYERS · " + players.size() + " / " + update.settings().maxPlayers(),
+                JLabel.Type.FIELD);
 
         var grid = new GridPane();
         grid.setHgap(16);
@@ -70,8 +77,8 @@ public class LobbyScreen extends BorderPane {
         right.setPercentWidth(50);
         grid.getColumnConstraints().addAll(left, right);
 
-        for (int i = 0; i < PLAYERS.size(); i++) {
-            grid.add(playerRow(PLAYERS.get(i), i), i % 2, i / 2);
+        for (int i = 0; i < players.size(); i++) {
+            grid.add(playerRow(players.get(i), update.hostId(), host, i), i % 2, i / 2);
         }
 
         var section = new VBox(16, label, grid);
@@ -80,11 +87,11 @@ public class LobbyScreen extends BorderPane {
         return section;
     }
 
-    private HBox playerRow(Player player, int index) {
+    private HBox playerRow(PlayerInfo player, int hostId, boolean iAmHost, int index) {
         var dot = new Region();
         dot.getStyleClass().addAll("row__dot", "badge-" + (index % 7 + 1));
 
-        var name = new Label(player.name());
+        var name = new Label(player.nickname());
         name.getStyleClass().add("row__title");
 
         var spacer = new Region();
@@ -96,30 +103,47 @@ public class LobbyScreen extends BorderPane {
         row.setCursor(Cursor.DEFAULT);
         row.setMaxWidth(Double.MAX_VALUE);
 
-        if (player.you()) {
-            var tag = new Label(player.isHost() ? "HOST · YOU" : "YOU");
+        boolean isMe = player.id() == ctx.session().userId();
+        boolean isHost = player.id() == hostId;
+
+        if (isMe) {
+            var tag = new Label(isHost ? "HOST · YOU" : "YOU");
             tag.getStyleClass().add("tag");
             row.getChildren().add(tag);
-        } else {
+        } else if (isHost) {
+            var tag = new Label("HOST");
+            tag.getStyleClass().add("tag");
+            row.getChildren().add(tag);
+        } else if (iAmHost) {
             var kick = new Label("KICK ×");
             kick.getStyleClass().add("row__kick");
-            kick.setOnMouseClicked(e -> { /* TODO: kick player */ });
+            kick.setCursor(Cursor.HAND);
+            kick.setOnMouseClicked(e -> ctx.api().kickPlayer(player.id()));
             row.getChildren().add(kick);
         }
         return row;
     }
 
-    private HBox buildActions(AppContext ctx) {
+    private HBox buildActions(boolean host) {
         var leaveRoom = new JButton("‹  LEAVE ROOM", JButton.Variant.GHOST, false,
-                () -> ctx.show(new MainMenuScreen(ctx)));
-        var startGame = new JButton("START GAME", JButton.Variant.PRIMARY,
-                () -> { /* TODO: start the game */ });
-        startGame.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(startGame, Priority.ALWAYS);
+                () -> ctx.api().leaveRoom(() -> ctx.show(new MainMenuScreen(ctx))));
 
-        var actions = new HBox(24, leaveRoom, startGame);
+        var actions = new HBox(24, leaveRoom);
         actions.setAlignment(Pos.CENTER_LEFT);
         BorderPane.setMargin(actions, new Insets(24, 0, 0, 0));
+
+        if (host) {
+            var startGame = new JButton("START GAME", JButton.Variant.PRIMARY,
+                    () -> ctx.api().startGame());
+            startGame.setMaxWidth(Double.MAX_VALUE);
+            HBox.setHgrow(startGame, Priority.ALWAYS);
+            actions.getChildren().add(startGame);
+        } else {
+            var waiting = new JLabel("WAITING FOR HOST…", JLabel.Type.SUBTITLE);
+            var spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+            actions.getChildren().addAll(spacer, waiting);
+        }
         return actions;
     }
 }
