@@ -23,7 +23,7 @@ public class CreateRoomScreen extends BorderPane {
         back.setCursor(Cursor.HAND);
         back.setOnMouseClicked(e -> router.show(new MainMenuScreen(router)));
 
-        var section = new JLabel("CREATE ROOM", JLabel.Type.SECTION);
+        var section = new JLabel("CREATE", JLabel.Type.SECTION);
 
         var roomNameLabel = new JLabel("ROOM NAME", JLabel.Type.FIELD);
         var roomName = new TextField();

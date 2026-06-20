@@ -21,7 +21,8 @@ public class LoginScreen extends BorderPane {
         var header = new VBox(6, wordmark, subtitle);
 
         var nicknameLabel = new JLabel("NICKNAME", JLabel.Type.FIELD);
-        var nickname = new TextField("nickname");
+        var nickname = new TextField("");
+        nickname.setPromptText("nickname");
         nickname.getStyleClass().addAll("input", "input--filled");
         nickname.setMinWidth(COLUMN_WIDTH);
         nickname.setMaxWidth(COLUMN_WIDTH);

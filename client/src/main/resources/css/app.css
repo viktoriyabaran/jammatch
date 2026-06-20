@@ -135,6 +135,13 @@
 
 .input--error { -fx-text-fill: -error-text; -fx-border-color: -error; }
 
+.input.code {
+    -fx-font-size: 30px;
+    -fx-alignment: center;
+    -fx-text-fill: -accent-text;
+    -fx-padding: 44 26;
+}
+
 .input-label {
     -fx-font-family: "Space Mono";
     -fx-font-size: 11px;
