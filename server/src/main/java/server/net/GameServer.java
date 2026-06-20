@@ -2,6 +2,11 @@ package server.net;
 
 import common.protocol.*;
 import common.net.*;
+import server.db.ConnectionPool;
+import server.db.DbInitializer;
+import server.db.dao.RoomDao;
+import server.db.dao.UserDao;
+import server.room.RoomManager;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -19,15 +24,25 @@ public class GameServer {
         CryptoService crypto = new CryptoService("StoreServerTest1".getBytes(StandardCharsets.UTF_8));
         ExecutorService clientThreads = Executors.newCachedThreadPool();
 
+        ConnectionPool pool = new ConnectionPool();
+        new DbInitializer(pool).initialize();
+
+        UserDao userDao = new UserDao(pool);
+        RoomDao roomDao = new RoomDao(pool);
+        RoomManager roomManager = new RoomManager();
+        SessionManager sessionManager = new SessionManager();
+
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             while (!Thread.currentThread().isInterrupted()) {
                 Socket clientSocket = serverSocket.accept();
-                clientThreads.submit(() -> handleClient(clientSocket, crypto));
+                clientThreads.submit(
+                        () -> handleClient(clientSocket, crypto, userDao, roomDao, roomManager, sessionManager));
             }
         }
     }
 
-    private static void handleClient(Socket socket, CryptoService crypto) {
+    private static void handleClient(Socket socket, CryptoService crypto, UserDao userDao, RoomDao roomDao,
+            RoomManager roomManager, SessionManager sessionManager) {
         ExecutorService pipeline = Executors.newFixedThreadPool(4);
         try {
             MessageReceiver receiver = new SocketMessageReceiver(socket);
@@ -39,18 +54,20 @@ public class GameServer {
             BlockingQueue<byte[]> outgoing = new LinkedBlockingQueue<>();
 
             pipeline.submit(new Decryptor(incoming, decoded, crypto));
-            pipeline.submit(new Processor(decoded, responses));
+            pipeline.submit(new Processor(decoded, responses, userDao, roomDao, roomManager, sessionManager));
             pipeline.submit(new Encryptor(responses, outgoing, crypto));
             pipeline.submit(new Sender(sender, outgoing));
 
             new Receiver(receiver, incoming).run();
 
         } catch (IOException e) {
-            System.err.println("[Server] Error: " + e.getMessage());
+            System.err.println(e.getMessage());
         } finally {
             pipeline.shutdownNow();
-            try { socket.close(); } catch (IOException ignored) {}
-            System.out.println("[Server] Client disconnected");
+            try {
+                socket.close();
+            } catch (IOException ignored) {
+            }
         }
     }
 }
