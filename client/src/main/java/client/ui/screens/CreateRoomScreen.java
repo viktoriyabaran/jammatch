@@ -3,7 +3,7 @@ package client.ui.screens;
 import client.ui.Router;
 import client.ui.components.JButton;
 import client.ui.components.JLabel;
-import client.ui.components.Stepper;
+import client.ui.components.JStepper;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -32,8 +32,8 @@ public class CreateRoomScreen extends BorderPane {
         roomName.setMaxWidth(COLUMN_WIDTH);
         var field = new VBox(14, roomNameLabel, roomName);
 
-        var rounds = new Stepper("ROUNDS", 1, 20, 1, 5, "");
-        var duration = new Stepper("DURATION", 10, 120, 5, 30, "s");
+        var rounds = new JStepper("ROUNDS", 1, 20, 1, 5, "");
+        var duration = new JStepper("DURATION", 10, 120, 5, 30, "s");
         HBox.setHgrow(rounds, Priority.ALWAYS);
         HBox.setHgrow(duration, Priority.ALWAYS);
         var stepperRow = new HBox(rounds, duration);
@@ -42,7 +42,7 @@ public class CreateRoomScreen extends BorderPane {
         stepperRow.setMaxWidth(COLUMN_WIDTH);
 
         var createRoomButton = new JButton("CREATE ROOM", JButton.Variant.PRIMARY,
-                () -> router.show(new CreateRoomScreen(router))); // TODO: show "Add playlist" screen
+                () -> router.show(new AddPlaylistScreen(router)));
         createRoomButton.setMinWidth(COLUMN_WIDTH);
         createRoomButton.setMaxWidth(COLUMN_WIDTH);
 

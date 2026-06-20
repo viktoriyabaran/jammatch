@@ -3,14 +3,11 @@ package client.ui.screens;
 import client.ui.Router;
 import client.ui.components.JButton;
 import client.ui.components.JLabel;
-import client.ui.components.Stepper;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.control.TextFormatter;
@@ -38,7 +35,7 @@ public class JoinRoomScreen extends BorderPane {
         var field = new VBox(14, roomCodeLabel, roomCode);
 
         var joinRoomButton = new JButton("JOIN", JButton.Variant.PRIMARY,
-                () -> router.show(new JoinRoomScreen(router))); // TODO: show "Add playlist" screen
+                () -> router.show(new AddPlaylistScreen(router)));
         joinRoomButton.setMinWidth(COLUMN_WIDTH);
         joinRoomButton.setMaxWidth(COLUMN_WIDTH);
 
