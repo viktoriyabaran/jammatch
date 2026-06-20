@@ -1,6 +1,6 @@
 package client.ui.screens;
 
-import client.ui.Router;
+import client.ui.AppContext;
 import client.ui.components.JButton;
 import client.ui.components.JLabel;
 import javafx.geometry.Insets;
@@ -28,15 +28,15 @@ public class LobbyScreen extends BorderPane {
             new Player("andrew", false, false),
             new Player("mia", false, false));
 
-    public LobbyScreen(Router router) {
-        setTop(buildHeader(router));
+    public LobbyScreen(AppContext ctx) {
+        setTop(buildHeader(ctx));
         setCenter(buildPlayers());
-        setBottom(buildActions(router));
+        setBottom(buildActions(ctx));
         setPadding(new Insets(36, 80, 36, 80));
         getStyleClass().add("bg-corner");
     }
 
-    private HBox buildHeader(Router router) {
+    private HBox buildHeader(AppContext ctx) {
         var sectionName = new JLabel("LOBBY", JLabel.Type.SECTION);
         var roomName = new JLabel("your room", JLabel.Type.DISPLAY);
         var roomCode = new JLabel("X7K9P2", JLabel.Type.CODE);
@@ -44,7 +44,7 @@ public class LobbyScreen extends BorderPane {
 
         var editSettings = new JLabel("EDIT SETTINGS  ›", JLabel.Type.SECTION);
         editSettings.setCursor(Cursor.HAND);
-        editSettings.setOnMouseClicked(e -> router.show(new CreateRoomScreen(router)));
+        editSettings.setOnMouseClicked(e -> ctx.show(new CreateRoomScreen(ctx)));
         var roundCount = new JLabel("5 ROUNDS", JLabel.Type.SUBTITLE);
         var roundDuration = new JLabel("30 SECONDS / ROUND", JLabel.Type.SUBTITLE);
         var gameInfo = new VBox(6, editSettings, roundCount, roundDuration);
@@ -109,9 +109,9 @@ public class LobbyScreen extends BorderPane {
         return row;
     }
 
-    private HBox buildActions(Router router) {
+    private HBox buildActions(AppContext ctx) {
         var leaveRoom = new JButton("‹  LEAVE ROOM", JButton.Variant.GHOST, false,
-                () -> router.show(new MainMenuScreen(router)));
+                () -> ctx.show(new MainMenuScreen(ctx)));
         var startGame = new JButton("START GAME", JButton.Variant.PRIMARY,
                 () -> { /* TODO: start the game */ });
         startGame.setMaxWidth(Double.MAX_VALUE);

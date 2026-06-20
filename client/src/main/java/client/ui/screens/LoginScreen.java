@@ -1,6 +1,6 @@
 package client.ui.screens;
 
-import client.ui.Router;
+import client.ui.AppContext;
 import client.ui.components.JButton;
 import client.ui.components.JLabel;
 import javafx.application.Platform;
@@ -15,10 +15,11 @@ public class LoginScreen extends BorderPane {
 
     private static final double COLUMN_WIDTH = 380;
 
-    public LoginScreen(Router router) {
+    public LoginScreen(AppContext ctx) {
         var wordmark = new JLabel("SSSLY", JLabel.Type.WORDMARK);
         var subtitle = new JLabel("GUESS YOUR SPOTY JAMS", JLabel.Type.SUBTITLE);
         var header = new VBox(6, wordmark, subtitle);
+        var status = new JLabel("", JLabel.Type.META);
 
         var nicknameLabel = new JLabel("NICKNAME", JLabel.Type.FIELD);
         var nickname = new TextField("");
@@ -28,10 +29,7 @@ public class LoginScreen extends BorderPane {
         nickname.setMaxWidth(COLUMN_WIDTH);
         var field = new VBox(14, nicknameLabel, nickname);
 
-        var continueButton = new JButton("Continue", JButton.Variant.PRIMARY,
-                () -> router.show(new MainMenuScreen(router)));
-        continueButton.setMinWidth(COLUMN_WIDTH);
-        continueButton.setMaxWidth(COLUMN_WIDTH);
+        var continueButton = getContinueButton(ctx, nickname, status);
 
         var column = new VBox(header, field, continueButton);
         column.setAlignment(Pos.CENTER_LEFT);
@@ -56,5 +54,23 @@ public class LoginScreen extends BorderPane {
         getStyleClass().add("bg-corner");
 
         Platform.runLater(nickname::requestFocus);
+    }
+
+    private static JButton getContinueButton(AppContext ctx, TextField nickname, JLabel status) {
+        var continueButton = new JButton("Continue", JButton.Variant.PRIMARY, () -> {
+            String nick = nickname.getText().trim();
+            if (nick.isEmpty()) {
+                status.setText("Enter a nickname");
+                return;
+            }
+
+            ctx.api().login(nick,
+                    () -> ctx.show(new MainMenuScreen(ctx)),
+                    status::setText);
+
+        });
+        continueButton.setMinWidth(COLUMN_WIDTH);
+        continueButton.setMaxWidth(COLUMN_WIDTH);
+        return continueButton;
     }
 }

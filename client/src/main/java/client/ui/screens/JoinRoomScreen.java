@@ -1,6 +1,6 @@
 package client.ui.screens;
 
-import client.ui.Router;
+import client.ui.AppContext;
 import client.ui.components.JButton;
 import client.ui.components.JLabel;
 import javafx.geometry.Insets;
@@ -16,11 +16,12 @@ public class JoinRoomScreen extends BorderPane {
 
     private static final double COLUMN_WIDTH = 380;
 
-    public JoinRoomScreen(Router router) {
+    public JoinRoomScreen(AppContext ctx) {
         var back = new JLabel("‹  BACK", JLabel.Type.NAV);
         back.setCursor(Cursor.HAND);
-        back.setOnMouseClicked(e -> router.show(new MainMenuScreen(router)));
+        back.setOnMouseClicked(e -> ctx.show(new MainMenuScreen(ctx)));
 
+        var status = new JLabel("", JLabel.Type.META);
         var section = new JLabel("JOIN ROOM", JLabel.Type.SECTION);
 
         var roomCodeLabel = new JLabel("ROOM CODE", JLabel.Type.FIELD);
@@ -34,10 +35,7 @@ public class JoinRoomScreen extends BorderPane {
         }));
         var field = new VBox(14, roomCodeLabel, roomCode);
 
-        var joinRoomButton = new JButton("JOIN", JButton.Variant.PRIMARY,
-                () -> router.show(new AddPlaylistScreen(router)));
-        joinRoomButton.setMinWidth(COLUMN_WIDTH);
-        joinRoomButton.setMaxWidth(COLUMN_WIDTH);
+        var joinRoomButton = getJoinRoomButton(ctx, roomCode, status);
 
         var column = new VBox(section, field, joinRoomButton);
         column.setAlignment(Pos.CENTER_LEFT);
@@ -50,5 +48,21 @@ public class JoinRoomScreen extends BorderPane {
         BorderPane.setAlignment(column, Pos.CENTER);
         setPadding(new Insets(36, 80, 36, 80));
         getStyleClass().add("bg-corner");
+    }
+
+    private static JButton getJoinRoomButton(AppContext ctx, TextField roomCode, JLabel status) {
+        var joinRoomButton = new JButton("JOIN", JButton.Variant.PRIMARY, () -> {
+            String code = roomCode.getText().trim();
+            if (code.length() != 6) {
+                status.setText("Enter a valid room code");
+                return;
+            }
+            ctx.api().joinRoom(code,
+                    () -> ctx.show(new AddPlaylistScreen(ctx)),
+                    status::setText);
+        });
+        joinRoomButton.setMinWidth(COLUMN_WIDTH);
+        joinRoomButton.setMaxWidth(COLUMN_WIDTH);
+        return joinRoomButton;
     }
 }

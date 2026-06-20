@@ -1,6 +1,6 @@
 package client.ui.screens;
 
-import client.ui.Router;
+import client.ui.AppContext;
 import client.ui.components.JButton;
 import client.ui.components.JLabel;
 import client.ui.components.JRow;
@@ -36,10 +36,10 @@ public class AddPlaylistScreen extends BorderPane {
     private JRow selectedRow;
     private Playlist selectedPlaylist;
 
-    public AddPlaylistScreen(Router router) {
+    public AddPlaylistScreen(AppContext ctx) {
         var back = new JLabel("‹  BACK", JLabel.Type.NAV);
         back.setCursor(Cursor.HAND);
-        back.setOnMouseClicked(e -> router.show(new CreateRoomScreen(router)));
+        back.setOnMouseClicked(e -> ctx.show(new CreateRoomScreen(ctx)));
 
         var sectionName = new JLabel("ADD PLAYLIST", JLabel.Type.SECTION);
         var sectionDescription = new JLabel(
@@ -91,7 +91,7 @@ public class AddPlaylistScreen extends BorderPane {
         pasteRow.setMaxWidth(COLUMN_WIDTH);
 
         var continueButton = new JButton("CONTINUE", JButton.Variant.PRIMARY,
-                () -> router.show(new LobbyScreen(router))); // TODO: carry the chosen playlist forward
+                () -> ctx.show(new LobbyScreen(ctx))); // TODO: carry the chosen playlist forward
         continueButton.setMinWidth(COLUMN_WIDTH);
         continueButton.setMaxWidth(COLUMN_WIDTH);
 

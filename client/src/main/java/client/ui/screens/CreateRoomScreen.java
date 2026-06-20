@@ -1,6 +1,6 @@
 package client.ui.screens;
 
-import client.ui.Router;
+import client.ui.AppContext;
 import client.ui.components.JButton;
 import client.ui.components.JLabel;
 import client.ui.components.JStepper;
@@ -18,10 +18,12 @@ public class CreateRoomScreen extends BorderPane {
 
     private static final double COLUMN_WIDTH = 380;
 
-    public CreateRoomScreen(Router router) {
+    public CreateRoomScreen(AppContext ctx) {
         var back = new JLabel("‹  BACK", JLabel.Type.NAV);
         back.setCursor(Cursor.HAND);
-        back.setOnMouseClicked(e -> router.show(new MainMenuScreen(router)));
+        back.setOnMouseClicked(e -> ctx.show(new MainMenuScreen(ctx)));
+
+        var status = new JLabel("", JLabel.Type.META);
 
         var section = new JLabel("CREATE", JLabel.Type.SECTION);
 
@@ -41,8 +43,19 @@ public class CreateRoomScreen extends BorderPane {
         stepperRow.setMinWidth(COLUMN_WIDTH);
         stepperRow.setMaxWidth(COLUMN_WIDTH);
 
-        var createRoomButton = new JButton("CREATE ROOM", JButton.Variant.PRIMARY,
-                () -> router.show(new AddPlaylistScreen(router)));
+        var createRoomButton = new JButton("CREATE ROOM", JButton.Variant.PRIMARY, () -> {
+            String roomNameTrimmed = roomName.getText().trim();
+            int roundNumber = rounds.value();
+            int roundDuration = duration.value();
+            if (roomNameTrimmed.isEmpty()) {
+                status.setText("Enter a room name");
+                return;
+            }
+            // todo: add after the playlist has been connected
+            ctx.api().createRoom(roomNameTrimmed,roundNumber, roundDuration,
+                    () -> ctx.show(new AddPlaylistScreen(ctx)),
+                    status::setText);
+        });
         createRoomButton.setMinWidth(COLUMN_WIDTH);
         createRoomButton.setMaxWidth(COLUMN_WIDTH);
 
