@@ -81,12 +81,22 @@ public class AddPlaylistScreen extends BorderPane {
         pasteRow.setMinWidth(COLUMN_WIDTH);
         pasteRow.setMaxWidth(COLUMN_WIDTH);
 
-        var continueButton = new JButton("CONTINUE", JButton.Variant.PRIMARY,
-                () -> ctx.show(new LobbyScreen(ctx))); // TODO: carry the chosen playlist forward
+        var status = new JLabel("", JLabel.Type.META);
+
+        var continueButton = new JButton("CONTINUE", JButton.Variant.PRIMARY, () -> {
+            String pasted = playlistLink.getText().trim();
+            String url = !pasted.isEmpty() ? pasted
+                    : selectedPlaylist != null ? selectedPlaylist.url() : null;
+            if (url == null) {
+                status.setText("Pick a saved playlist or paste a link");
+                return;
+            }
+            ctx.api().submitPlaylist(url, () -> ctx.show(new LobbyScreen(ctx)), status::setText);
+        });
         continueButton.setMinWidth(COLUMN_WIDTH);
         continueButton.setMaxWidth(COLUMN_WIDTH);
 
-        var column = new VBox(section, listHeader, scroll, dividerLabel, pasteRow, continueButton);
+        var column = new VBox(section, listHeader, scroll, dividerLabel, pasteRow, continueButton, status);
         column.setAlignment(Pos.CENTER_LEFT);
         column.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
         VBox.setMargin(listHeader, new Insets(28, 0, 0, 0));
@@ -94,6 +104,7 @@ public class AddPlaylistScreen extends BorderPane {
         VBox.setMargin(dividerLabel, new Insets(24, 0, 0, 0));
         VBox.setMargin(pasteRow, new Insets(16, 0, 0, 0));
         VBox.setMargin(continueButton, new Insets(20, 0, 0, 0));
+        VBox.setMargin(status, new Insets(12, 0, 0, 0));
 
         setTop(back);
         setCenter(column);

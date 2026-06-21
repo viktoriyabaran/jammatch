@@ -6,7 +6,12 @@ import server.db.ConnectionPool;
 import server.db.DbInitializer;
 import server.db.dao.RoomDao;
 import server.db.dao.SavedPlaylistDao;
+import server.db.dao.SongCacheDao;
 import server.db.dao.UserDao;
+import server.external.HttpJson;
+import server.external.PlaylistResolver;
+import server.external.SpotifyClient;
+import server.external.YouTubeClient;
 import server.room.RoomManager;
 
 import java.io.IOException;
@@ -31,6 +36,12 @@ public class GameServer {
         UserDao userDao = new UserDao(pool);
         RoomDao roomDao = new RoomDao(pool);
         SavedPlaylistDao savedPlaylistDao = new SavedPlaylistDao(pool);
+        SongCacheDao songCacheDao = new SongCacheDao(pool);
+        HttpJson http = new HttpJson();
+        PlaylistResolver playlistResolver = new PlaylistResolver(
+                new YouTubeClient(http, System.getenv("YOUTUBE_API_KEY")),
+                new SpotifyClient(http, System.getenv("SPOTIFY_CLIENT_ID"), System.getenv("SPOTIFY_CLIENT_SECRET")),
+                songCacheDao);
         RoomManager roomManager = new RoomManager();
         SessionManager sessionManager = new SessionManager();
 
@@ -38,13 +49,14 @@ public class GameServer {
             while (!Thread.currentThread().isInterrupted()) {
                 Socket clientSocket = serverSocket.accept();
                 clientThreads.submit(
-                        () -> handleClient(clientSocket, crypto, userDao, roomDao, roomManager, sessionManager, savedPlaylistDao));
+                        () -> handleClient(clientSocket, crypto, userDao, roomDao, roomManager, sessionManager, savedPlaylistDao, playlistResolver));
             }
         }
     }
 
     private static void handleClient(Socket socket, CryptoService crypto, UserDao userDao, RoomDao roomDao,
-            RoomManager roomManager, SessionManager sessionManager, SavedPlaylistDao savedPlaylistDao) {
+            RoomManager roomManager, SessionManager sessionManager, SavedPlaylistDao savedPlaylistDao,
+            PlaylistResolver playlistResolver) {
         ExecutorService pipeline = Executors.newFixedThreadPool(4);
         try {
             MessageReceiver receiver = new SocketMessageReceiver(socket);
@@ -56,7 +68,7 @@ public class GameServer {
             BlockingQueue<byte[]> outgoing = new LinkedBlockingQueue<>();
 
             pipeline.submit(new Decryptor(incoming, decoded, crypto));
-            pipeline.submit(new Processor(decoded, responses, userDao, roomDao, roomManager, sessionManager, savedPlaylistDao));
+            pipeline.submit(new Processor(decoded, responses, userDao, roomDao, roomManager, sessionManager, savedPlaylistDao, playlistResolver));
             pipeline.submit(new Encryptor(responses, outgoing, crypto));
             pipeline.submit(new Sender(sender, outgoing));
 

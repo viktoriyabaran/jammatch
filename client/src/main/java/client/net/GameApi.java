@@ -10,6 +10,7 @@ import common.messages.RoomMessages.RoomConfig;
 import common.messages.SessionMessages.ClientLogin;
 import common.messages.SessionMessages.SavedPlaylist;
 import common.messages.SessionMessages.SavedPlaylists;
+import common.messages.SessionMessages.SubmitPlaylist;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -44,6 +45,16 @@ public class GameApi {
             }
             SavedPlaylists result = gson.fromJson(body, SavedPlaylists.class);
             handler.accept(result.items() != null ? result.items() : List.of());
+        });
+    }
+
+    public void submitPlaylist(String playlistUrl, Runnable onSuccess, ServerConnection.MessageHandler onError) {
+        conn.send(CommandType.SUBMIT_PLAYLIST, session.userId(), new SubmitPlaylist(playlistUrl), body -> {
+            if (ServerConnection.isError(body)) {
+                onError.handle(ServerConnection.errorMessage(body));
+            } else {
+                onSuccess.run();
+            }
         });
     }
 

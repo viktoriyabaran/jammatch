@@ -6,6 +6,7 @@ import common.contracts.*;
 import common.messages.SessionMessages.ClientLogin;
 import common.messages.SessionMessages.SavedPlaylist;
 import common.messages.SessionMessages.SavedPlaylists;
+import common.messages.SessionMessages.SubmitPlaylist;
 import common.messages.RoomMessages.RoomConfig;
 import common.messages.RoomMessages.RoomSettings;
 import common.messages.RoomMessages.CreateRoomResult;
@@ -15,16 +16,21 @@ import common.messages.RoomMessages.PlayerInfo;
 import server.db.dao.RoomDao;
 import server.db.dao.SavedPlaylistDao;
 import server.db.dao.UserDao;
+import server.external.PlaylistResolver;
 import server.room.GameRoom;
 import server.room.RoomManager;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Processor implements Runnable {
     private static final AtomicInteger NEXT_ID = new AtomicInteger(1);
+    private static final ExecutorService RESOLUTION_POOL = Executors.newFixedThreadPool(4);
     private final int id = NEXT_ID.getAndIncrement();
     private final BlockingQueue<Packet> input;
     private final BlockingQueue<Packet> output;
@@ -34,10 +40,12 @@ public class Processor implements Runnable {
     private final RoomManager roomManager;
     private final SessionManager sessionManager;
     private final SavedPlaylistDao savedPlaylistDao;
+    private final PlaylistResolver playlistResolver;
     private final Gson gson = new Gson();
 
     public Processor(BlockingQueue<Packet> input, BlockingQueue<Packet> output, UserDao userDao, RoomDao roomDao,
-            RoomManager roomManager, SessionManager sessionManager, SavedPlaylistDao savedPlaylistDao) {
+            RoomManager roomManager, SessionManager sessionManager, SavedPlaylistDao savedPlaylistDao,
+            PlaylistResolver playlistResolver) {
         this.input = input;
         this.output = output;
         this.userDao = userDao;
@@ -45,6 +53,7 @@ public class Processor implements Runnable {
         this.roomManager = roomManager;
         this.sessionManager = sessionManager;
         this.savedPlaylistDao = savedPlaylistDao;
+        this.playlistResolver = playlistResolver;
     }
 
     private Packet process(Packet request) {
@@ -161,6 +170,17 @@ public class Processor implements Runnable {
                     }
                     return buildSuccess(request, "{\"status\":\"OK\"}");
 
+                case SUBMIT_PLAYLIST:
+                    SubmitPlaylist submitData = gson.fromJson(payloadStr, SubmitPlaylist.class);
+                    int submitUserId = msg.getbUserId();
+                    String submitUrl = submitData.playlistUrl();
+                    savedPlaylistDao.save(submitUserId, submitUrl, null);
+                    roomManager.getRoomByUserId(submitUserId).ifPresent(room -> {
+                        room.setPlaylist(submitUserId, submitUrl);
+                        RESOLUTION_POOL.submit(() -> resolvePlaylistAsync(room, submitUserId, submitUrl));
+                    });
+                    return buildSuccess(request, "{\"status\":\"OK\"}");
+
                 case LIST_SAVED_PLAYLISTS:
                     java.util.List<SavedPlaylist> playlists = savedPlaylistDao.listForUser(msg.getbUserId()).stream()
                             .map(p -> new SavedPlaylist(p.url(), p.name()))
@@ -173,6 +193,17 @@ public class Processor implements Runnable {
         } catch (Exception e) {
             System.err.println("[Processor] Error handling " + command + ": " + e.getMessage());
             return buildError(request, e.getMessage());
+        }
+    }
+
+    private void resolvePlaylistAsync(GameRoom room, int userId, String playlistUrl) {
+        try {
+            List<String> videoIds = playlistResolver.resolve(playlistUrl);
+            room.setResolvedSongs(userId, videoIds);
+            room.markPlaylistReady(userId);
+            broadcastLobbyUpdate(room);
+        } catch (Exception e) {
+            System.err.println("[Processor] playlist resolve failed for user " + userId + ": " + e.getMessage());
         }
     }
 

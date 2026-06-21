@@ -61,11 +61,29 @@ INSERT OR IGNORE INTO banned_artists (name) VALUES
 ('Mot'), ('L''One'), ('T-Fest'), ('Eldzhey'), ('Face'),
 ('Kish'), ('Bi-2'), ('Splean'), ('DDT'), ('Aria');
 
+CREATE TABLE IF NOT EXISTS song_cache (
+    video_id TEXT PRIMARY KEY,
+    title TEXT,
+    artist TEXT,
+    cover_url TEXT,
+    matched INTEGER NOT NULL,
+    fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS saved_playlists (
     user_id INTEGER NOT NULL,
     url TEXT NOT NULL,
     name TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id, url),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS game_songs (
+    game_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    video_id TEXT NOT NULL,
+    PRIMARY KEY (game_id, user_id, video_id),
+    FOREIGN KEY (game_id) REFERENCES games(id),
     FOREIGN KEY (user_id) REFERENCES users(id)
 );

@@ -4,7 +4,9 @@ import common.messages.RoomMessages.RoomSettings;
 import common.messages.RoomMessages.PlayerInfo;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class GameRoom {
@@ -13,6 +15,8 @@ public class GameRoom {
     private final int hostId;
     private final RoomSettings settings;
     private final List<PlayerInfo> players = new ArrayList<>();
+    private final Map<Integer, String> playlists = new HashMap<>();
+    private final Map<Integer, List<String>> resolvedSongs = new HashMap<>();
     private final ReentrantLock lock = new ReentrantLock();
     private boolean gameStarted = false;
     private int currentRound = 0;
@@ -48,6 +52,8 @@ public class GameRoom {
         // CONCURRENCY: Захист доступу до стану кімнати
         lock.lock();
         try {
+            playlists.remove(id);
+            resolvedSongs.remove(id);
             return players.removeIf(p -> p.id() == id);
         } finally {
             lock.unlock();
@@ -115,6 +121,57 @@ public class GameRoom {
         lock.lock();
         try {
             this.currentRound = round;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void setPlaylist(int userId, String playlistUrl) {
+        lock.lock();
+        try {
+            playlists.put(userId, playlistUrl);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public Map<Integer, String> getPlaylists() {
+        lock.lock();
+        try {
+            return new HashMap<>(playlists);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void setResolvedSongs(int userId, List<String> videoIds) {
+        lock.lock();
+        try {
+            resolvedSongs.put(userId, videoIds);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public List<String> getResolvedSongs(int userId) {
+        lock.lock();
+        try {
+            return resolvedSongs.getOrDefault(userId, List.of());
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void markPlaylistReady(int userId) {
+        lock.lock();
+        try {
+            for (int i = 0; i < players.size(); i++) {
+                PlayerInfo p = players.get(i);
+                if (p.id() == userId) {
+                    players.set(i, new PlayerInfo(p.id(), p.nickname(), true));
+                    return;
+                }
+            }
         } finally {
             lock.unlock();
         }
