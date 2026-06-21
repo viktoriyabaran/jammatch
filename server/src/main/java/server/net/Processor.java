@@ -59,7 +59,7 @@ public class Processor implements Runnable {
             switch (command) {
                 case CLIENT_LOGIN:
                     ClientLogin loginData = gson.fromJson(payloadStr, ClientLogin.class);
-                    int userId = userDao.insertUser(loginData.nickname());
+                    int userId = userDao.findOrCreateByToken(loginData.clientToken(), loginData.nickname());
 
                     sessionManager.register(userId, output);
                     return buildSuccess(request, String.valueOf(userId));

@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nickname TEXT NOT NULL
+    nickname TEXT NOT NULL,
+    client_token TEXT UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS rooms (

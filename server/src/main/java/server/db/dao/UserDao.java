@@ -35,6 +35,37 @@ public class UserDao {
         }
     }
 
+    public int findOrCreateByToken(String clientToken, String nickname) throws InterruptedException, SQLException {
+        Connection conn = connectionPool.getConnection();
+
+        try {
+            try (PreparedStatement insert = conn.prepareStatement(
+                    "INSERT OR IGNORE INTO users (client_token, nickname) VALUES (?, ?)")) {
+                insert.setString(1, clientToken);
+                insert.setString(2, nickname);
+                insert.executeUpdate();
+            }
+            try (PreparedStatement update = conn.prepareStatement(
+                    "UPDATE users SET nickname = ? WHERE client_token = ?")) {
+                update.setString(1, nickname);
+                update.setString(2, clientToken);
+                update.executeUpdate();
+            }
+            try (PreparedStatement select = conn.prepareStatement(
+                    "SELECT id FROM users WHERE client_token = ?")) {
+                select.setString(1, clientToken);
+                try (ResultSet rs = select.executeQuery()) {
+                    if (rs.next()) {
+                        return rs.getInt("id");
+                    }
+                }
+            }
+            throw new SQLException("Find-or-create failed for token");
+        } finally {
+            connectionPool.releaseConnection(conn);
+        }
+    }
+
     public Optional<String> getUserNickname(int id) throws InterruptedException, SQLException {
         String sql = "SELECT nickname FROM users WHERE id = ?";
         Connection conn = connectionPool.getConnection();

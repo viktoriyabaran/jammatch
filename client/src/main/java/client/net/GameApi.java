@@ -23,7 +23,7 @@ public class GameApi {
     }
 
     public void login(String nickname, Runnable onSuccess, ServerConnection.MessageHandler onError) {
-        conn.send(CommandType.CLIENT_LOGIN, 0, new ClientLogin(nickname), body -> {
+        conn.send(CommandType.CLIENT_LOGIN, 0, new ClientLogin(nickname, session.clientToken()), body -> {
             if (ServerConnection.isError(body)) {
                 onError.handle(ServerConnection.errorMessage(body));
             } else {
