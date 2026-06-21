@@ -59,7 +59,8 @@ public class YouTubeClient {
                 tracks.add(new ResolvedTrack(
                         str(contentDetails, "videoId"),
                         str(snippet, "title"),
-                        author
+                        author,
+                        thumbnail(snippet)
                 ));
             }
 
@@ -92,6 +93,17 @@ public class YouTubeClient {
     private static String str(JsonObject obj, String key) {
         JsonElement el = obj.get(key);
         return el == null || el.isJsonNull() ? null : el.getAsString();
+    }
+
+    private static String thumbnail(JsonObject snippet) {
+        if (!snippet.has("thumbnails")) {
+            return null;
+        }
+        JsonObject thumbnails = snippet.getAsJsonObject("thumbnails");
+        JsonObject best = thumbnails.has("high") ? thumbnails.getAsJsonObject("high")
+                : thumbnails.has("default") ? thumbnails.getAsJsonObject("default")
+                : null;
+        return best == null ? null : str(best, "url");
     }
 
     private LinkedHashMap<String, Boolean> checkEmbeddableVideos(List<String> trackIds) throws IOException, InterruptedException {
