@@ -4,6 +4,7 @@ import client.ui.AppContext;
 import client.ui.components.JButton;
 import client.ui.components.JLabel;
 import client.ui.components.JRow;
+import common.messages.SessionMessages.SavedPlaylist;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -15,26 +16,12 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
-import java.util.List;
-
 public class AddPlaylistScreen extends BorderPane {
 
     private static final double COLUMN_WIDTH = 660;
 
-    private record Playlist(String name, int tracks, String visibility) {}
-
-    private static final List<Playlist> SAVED = List.of(
-            new Playlist("late night drives", 68, "PUBLIC"),
-            new Playlist("gym pump", 31, "PUBLIC"),
-            new Playlist("throwback 2010s", 120, "PUBLIC"),
-            new Playlist("focus / deep work", 54, "PUBLIC"),
-            new Playlist("sunday slow", 22, "PUBLIC"),
-            new Playlist("road trip", 88, "PUBLIC"),
-            new Playlist("rainy day", 40, "PUBLIC"),
-            new Playlist("party starters", 73, "PUBLIC"));
-
     private JRow selectedRow;
-    private Playlist selectedPlaylist;
+    private SavedPlaylist selectedPlaylist;
 
     public AddPlaylistScreen(AppContext ctx) {
         var back = new JLabel("‹  BACK", JLabel.Type.NAV);
@@ -50,7 +37,7 @@ public class AddPlaylistScreen extends BorderPane {
         var section = new VBox(14, sectionName, sectionDescription);
 
         var savedLabel = new JLabel("SAVED PLAYLISTS", JLabel.Type.FIELD);
-        var savedCount = new JLabel(SAVED.size() + " SAVED", JLabel.Type.FIELD);
+        var savedCount = new JLabel("0 SAVED", JLabel.Type.FIELD);
         var headerSpacer = new Region();
         HBox.setHgrow(headerSpacer, Priority.ALWAYS);
         var listHeader = new HBox(savedLabel, headerSpacer, savedCount);
@@ -58,14 +45,18 @@ public class AddPlaylistScreen extends BorderPane {
         listHeader.setMaxWidth(COLUMN_WIDTH);
 
         var listContent = new VBox(10);
-        for (Playlist playlist : SAVED) {
-            var cover = new Region();
-            cover.getStyleClass().add("row__cover");
-            var row = new JRow(cover, playlist.name(),
-                    playlist.tracks() + " TRACKS · " + playlist.visibility());
-            row.setOnMouseClicked(e -> select(row, playlist));
-            listContent.getChildren().add(row);
-        }
+        ctx.api().listSavedPlaylists(saved -> {
+            savedCount.setText(saved.size() + " SAVED");
+            listContent.getChildren().clear();
+            for (SavedPlaylist playlist : saved) {
+                var cover = new Region();
+                cover.getStyleClass().add("row__cover");
+                var label = playlist.name() != null ? playlist.name() : playlist.url();
+                var row = new JRow(cover, label, playlist.url());
+                row.setOnMouseClicked(e -> select(row, playlist));
+                listContent.getChildren().add(row);
+            }
+        });
 
         var scroll = new ScrollPane(listContent);
         scroll.getStyleClass().add("list-scroll");
@@ -111,7 +102,7 @@ public class AddPlaylistScreen extends BorderPane {
         getStyleClass().add("bg-corner");
     }
 
-    private void select(JRow row, Playlist playlist) {
+    private void select(JRow row, SavedPlaylist playlist) {
         if (selectedRow != null) {
             selectedRow.setSelected(false);
         }

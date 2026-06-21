@@ -8,7 +8,10 @@ import common.messages.RoomMessages.LobbyUpdate;
 import common.messages.RoomMessages.RoomClosed;
 import common.messages.RoomMessages.RoomConfig;
 import common.messages.SessionMessages.ClientLogin;
+import common.messages.SessionMessages.SavedPlaylist;
+import common.messages.SessionMessages.SavedPlaylists;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 public class GameApi {
@@ -30,6 +33,17 @@ public class GameApi {
                 session.login(Integer.parseInt(body), nickname);
                 onSuccess.run();
             }
+        });
+    }
+
+    public void listSavedPlaylists(Consumer<List<SavedPlaylist>> handler) {
+        conn.send(CommandType.LIST_SAVED_PLAYLISTS, session.userId(), null, body -> {
+            if (ServerConnection.isError(body)) {
+                handler.accept(List.of());
+                return;
+            }
+            SavedPlaylists result = gson.fromJson(body, SavedPlaylists.class);
+            handler.accept(result.items() != null ? result.items() : List.of());
         });
     }
 

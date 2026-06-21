@@ -4,6 +4,7 @@ public enum CommandType {
     // Login and user management
     CLIENT_LOGIN(100),
     SUBMIT_PLAYLIST(101),
+    LIST_SAVED_PLAYLISTS(102),
 
     // Room management
     CREATE_ROOM(200),

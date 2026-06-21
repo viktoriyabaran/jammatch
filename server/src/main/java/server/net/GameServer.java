@@ -5,6 +5,7 @@ import common.net.*;
 import server.db.ConnectionPool;
 import server.db.DbInitializer;
 import server.db.dao.RoomDao;
+import server.db.dao.SavedPlaylistDao;
 import server.db.dao.UserDao;
 import server.room.RoomManager;
 
@@ -29,6 +30,7 @@ public class GameServer {
 
         UserDao userDao = new UserDao(pool);
         RoomDao roomDao = new RoomDao(pool);
+        SavedPlaylistDao savedPlaylistDao = new SavedPlaylistDao(pool);
         RoomManager roomManager = new RoomManager();
         SessionManager sessionManager = new SessionManager();
 
@@ -36,13 +38,13 @@ public class GameServer {
             while (!Thread.currentThread().isInterrupted()) {
                 Socket clientSocket = serverSocket.accept();
                 clientThreads.submit(
-                        () -> handleClient(clientSocket, crypto, userDao, roomDao, roomManager, sessionManager));
+                        () -> handleClient(clientSocket, crypto, userDao, roomDao, roomManager, sessionManager, savedPlaylistDao));
             }
         }
     }
 
     private static void handleClient(Socket socket, CryptoService crypto, UserDao userDao, RoomDao roomDao,
-            RoomManager roomManager, SessionManager sessionManager) {
+            RoomManager roomManager, SessionManager sessionManager, SavedPlaylistDao savedPlaylistDao) {
         ExecutorService pipeline = Executors.newFixedThreadPool(4);
         try {
             MessageReceiver receiver = new SocketMessageReceiver(socket);
@@ -54,7 +56,7 @@ public class GameServer {
             BlockingQueue<byte[]> outgoing = new LinkedBlockingQueue<>();
 
             pipeline.submit(new Decryptor(incoming, decoded, crypto));
-            pipeline.submit(new Processor(decoded, responses, userDao, roomDao, roomManager, sessionManager));
+            pipeline.submit(new Processor(decoded, responses, userDao, roomDao, roomManager, sessionManager, savedPlaylistDao));
             pipeline.submit(new Encryptor(responses, outgoing, crypto));
             pipeline.submit(new Sender(sender, outgoing));
 

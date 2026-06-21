@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import common.protocol.*;
 import common.contracts.*;
 import common.messages.SessionMessages.ClientLogin;
+import common.messages.SessionMessages.SavedPlaylist;
+import common.messages.SessionMessages.SavedPlaylists;
 import common.messages.RoomMessages.RoomConfig;
 import common.messages.RoomMessages.RoomSettings;
 import common.messages.RoomMessages.CreateRoomResult;
@@ -11,6 +13,7 @@ import common.messages.RoomMessages.JoinRoom;
 import common.messages.RoomMessages.LobbyUpdate;
 import common.messages.RoomMessages.PlayerInfo;
 import server.db.dao.RoomDao;
+import server.db.dao.SavedPlaylistDao;
 import server.db.dao.UserDao;
 import server.room.GameRoom;
 import server.room.RoomManager;
@@ -30,16 +33,18 @@ public class Processor implements Runnable {
     private final RoomDao roomDao;
     private final RoomManager roomManager;
     private final SessionManager sessionManager;
+    private final SavedPlaylistDao savedPlaylistDao;
     private final Gson gson = new Gson();
 
     public Processor(BlockingQueue<Packet> input, BlockingQueue<Packet> output, UserDao userDao, RoomDao roomDao,
-            RoomManager roomManager, SessionManager sessionManager) {
+            RoomManager roomManager, SessionManager sessionManager, SavedPlaylistDao savedPlaylistDao) {
         this.input = input;
         this.output = output;
         this.userDao = userDao;
         this.roomDao = roomDao;
         this.roomManager = roomManager;
         this.sessionManager = sessionManager;
+        this.savedPlaylistDao = savedPlaylistDao;
     }
 
     private Packet process(Packet request) {
@@ -155,6 +160,12 @@ public class Processor implements Runnable {
                         broadcastLobbyUpdate(r); // Оновлюємо лоббі для інших
                     }
                     return buildSuccess(request, "{\"status\":\"OK\"}");
+
+                case LIST_SAVED_PLAYLISTS:
+                    java.util.List<SavedPlaylist> playlists = savedPlaylistDao.listForUser(msg.getbUserId()).stream()
+                            .map(p -> new SavedPlaylist(p.url(), p.name()))
+                            .toList();
+                    return buildSuccess(request, gson.toJson(new SavedPlaylists(playlists)));
 
                 default:
                     return buildSuccess(request, "{\"status\":\"OK\"}");

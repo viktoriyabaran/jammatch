@@ -60,3 +60,12 @@ INSERT OR IGNORE INTO banned_artists (name) VALUES
 ('Nikolay Baskov'), ('Philipp Kirkorov'), ('Dima Bilan'), ('Sergey Lazarev'), ('Valery Meladze'),
 ('Mot'), ('L''One'), ('T-Fest'), ('Eldzhey'), ('Face'),
 ('Kish'), ('Bi-2'), ('Splean'), ('DDT'), ('Aria');
+
+CREATE TABLE IF NOT EXISTS saved_playlists (
+    user_id INTEGER NOT NULL,
+    url TEXT NOT NULL,
+    name TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, url),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
