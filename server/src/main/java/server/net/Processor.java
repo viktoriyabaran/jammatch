@@ -134,15 +134,9 @@ public class Processor implements Runnable {
                             roomManager.removeRoom(code);
                             roomDao.closeRoom(code);
 
-                            common.messages.RoomMessages.RoomClosed closedMessage = new common.messages.RoomMessages.RoomClosed(
-                                    "Host left the room");
-                            byte[] closedPayload = gson.toJson(closedMessage).getBytes(StandardCharsets.UTF_8);
-
                             for (PlayerInfo p : playersToNotify) {
                                 if (p.id() != leaveUserId) {
-                                    Message eventMsg = new Message(CommandType.ROOM_CLOSED.code(), p.id(),
-                                            closedPayload);
-                                    sessionManager.sendToUser(p.id(), new Packet((byte) 0, 0, eventMsg));
+                                    sendRoomClosed(p.id(), "Host left the room");
                                 }
                             }
                         } else {
