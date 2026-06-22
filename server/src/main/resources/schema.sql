@@ -74,6 +74,8 @@ CREATE TABLE IF NOT EXISTS saved_playlists (
     user_id INTEGER NOT NULL,
     url TEXT NOT NULL,
     name TEXT,
+    track_count INTEGER,
+    cover_url TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id, url),
     FOREIGN KEY (user_id) REFERENCES users(id)

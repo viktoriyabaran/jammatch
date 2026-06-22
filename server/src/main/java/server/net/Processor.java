@@ -7,6 +7,7 @@ import common.messages.SessionMessages.ClientLogin;
 import common.messages.SessionMessages.SavedPlaylist;
 import common.messages.SessionMessages.SavedPlaylists;
 import common.messages.SessionMessages.SubmitPlaylist;
+import common.messages.SessionMessages.ValidatePlaylist;
 import common.messages.RoomMessages.RoomConfig;
 import common.messages.RoomMessages.RoomSettings;
 import common.messages.RoomMessages.CreateRoomResult;
@@ -17,9 +18,11 @@ import server.db.dao.RoomDao;
 import server.db.dao.SavedPlaylistDao;
 import server.db.dao.UserDao;
 import server.external.PlaylistResolver;
+import server.external.model.PlaylistPreview;
 import server.room.GameRoom;
 import server.room.RoomManager;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
@@ -181,9 +184,29 @@ public class Processor implements Runnable {
                     });
                     return buildSuccess(request, "{\"status\":\"OK\"}");
 
+                case VALIDATE_PLAYLIST:
+                    ValidatePlaylist validateData = gson.fromJson(payloadStr, ValidatePlaylist.class);
+                    int validateUserId = msg.getbUserId();
+                    String validateUrl = validateData.playlistUrl();
+
+                    PlaylistPreview preview;
+                    try {
+                        preview = playlistResolver.preview(validateUrl);
+                    } catch (IOException e) {
+                        return buildError(request, friendlyPlaylistError(e));
+                    }
+                    if (preview.trackCount() == 0) {
+                        return buildError(request, "This playlist has no playable songs");
+                    }
+
+                    String previewName = preview.name() != null ? preview.name() : "Untitled playlist";
+                    savedPlaylistDao.upsert(validateUserId, validateUrl, previewName, preview.trackCount(), preview.coverUrl());
+                    SavedPlaylist validated = new SavedPlaylist(validateUrl, previewName, preview.trackCount(), preview.coverUrl());
+                    return buildSuccess(request, gson.toJson(validated));
+
                 case LIST_SAVED_PLAYLISTS:
                     java.util.List<SavedPlaylist> playlists = savedPlaylistDao.listForUser(msg.getbUserId()).stream()
-                            .map(p -> new SavedPlaylist(p.url(), p.name()))
+                            .map(p -> new SavedPlaylist(p.url(), p.name(), p.trackCount(), p.coverUrl()))
                             .toList();
                     return buildSuccess(request, gson.toJson(new SavedPlaylists(playlists)));
 
@@ -205,6 +228,17 @@ public class Processor implements Runnable {
         } catch (Exception e) {
             System.err.println("[Processor] playlist resolve failed for user " + userId + ": " + e.getMessage());
         }
+    }
+
+    private String friendlyPlaylistError(IOException e) {
+        String detail = e.getMessage() == null ? "" : e.getMessage();
+        if (detail.contains("HTTP 404")) {
+            return "Playlist is private or does not exist";
+        }
+        if (detail.contains("HTTP 403")) {
+            return "Playlist is private or unavailable";
+        }
+        return "Couldn't reach YouTube, please try again";
     }
 
     private void broadcastLobbyUpdate(GameRoom room) {

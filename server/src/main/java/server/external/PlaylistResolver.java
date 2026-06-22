@@ -3,6 +3,7 @@ package server.external;
 import server.db.dao.SongCacheDao;
 import server.external.model.AlbumCover;
 import server.external.model.CachedSong;
+import server.external.model.PlaylistPreview;
 import server.external.model.ResolvedTrack;
 
 import java.io.IOException;
@@ -19,6 +20,13 @@ public class PlaylistResolver {
         this.youTube = youTube;
         this.spotify = spotify;
         this.songCache = songCache;
+    }
+
+    public PlaylistPreview preview(String playlistUrl) throws IOException, InterruptedException {
+        List<ResolvedTrack> tracks = youTube.fetchTracks(playlistUrl);
+        String name = youTube.fetchPlaylistTitle(playlistUrl);
+        String cover = tracks.isEmpty() ? null : tracks.get(0).youtubeThumbnail();
+        return new PlaylistPreview(name, tracks.size(), cover);
     }
 
     public List<String> resolve(String playlistUrl) throws IOException, InterruptedException {

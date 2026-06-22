@@ -11,6 +11,7 @@ import common.messages.SessionMessages.ClientLogin;
 import common.messages.SessionMessages.SavedPlaylist;
 import common.messages.SessionMessages.SavedPlaylists;
 import common.messages.SessionMessages.SubmitPlaylist;
+import common.messages.SessionMessages.ValidatePlaylist;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -45,6 +46,17 @@ public class GameApi {
             }
             SavedPlaylists result = gson.fromJson(body, SavedPlaylists.class);
             handler.accept(result.items() != null ? result.items() : List.of());
+        });
+    }
+
+    public void validatePlaylist(String playlistUrl, Consumer<SavedPlaylist> onSuccess,
+            ServerConnection.MessageHandler onError) {
+        conn.send(CommandType.VALIDATE_PLAYLIST, session.userId(), new ValidatePlaylist(playlistUrl), body -> {
+            if (ServerConnection.isError(body)) {
+                onError.handle(ServerConnection.errorMessage(body));
+            } else {
+                onSuccess.accept(gson.fromJson(body, SavedPlaylist.class));
+            }
         });
     }
 

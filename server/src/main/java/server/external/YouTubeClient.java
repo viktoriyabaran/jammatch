@@ -80,6 +80,21 @@ public class YouTubeClient {
                 .toList();
     }
 
+    public String fetchPlaylistTitle(String playlistLink) throws IOException, InterruptedException {
+        Map<String, String> params = new LinkedHashMap<>();
+        params.put("part", "snippet");
+        params.put("id", parseLink(playlistLink));
+        params.put("key", apiKey);
+
+        JsonObject json = http.get(BASE + "/playlists" + HttpJson.query(params), Map.of());
+        JsonArray items = json.getAsJsonArray("items");
+        if (items == null || items.isEmpty()) {
+            return null;
+        }
+        JsonObject snippet = items.get(0).getAsJsonObject().getAsJsonObject("snippet");
+        return str(snippet, "title");
+    }
+
     private String parseLink(String playlistLink) {
         int index = playlistLink.indexOf("list=");
         if (index < 0) {

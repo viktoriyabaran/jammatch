@@ -8,6 +8,7 @@ public class JLabel extends Label {
         SECTION("section"),
         SUBTITLE("subtitle"),
         NAV("nav"),
+        SYSTEM("system-message"),
         FIELD("field"),
         META("meta"),
         BODY("body"),

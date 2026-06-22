@@ -73,6 +73,15 @@
     -fx-effect: null;
 }
 
+.btn--error { -fx-border-color: -error; }
+.btn--error .btn-text, .btn--error .chev { -fx-text-fill: -error-text; }
+.btn--error:hover {
+    -fx-background-color: transparent;
+    -fx-border-color: -error;
+    -fx-effect: null;
+}
+.btn--error:hover .btn-text, .btn--error:hover .chev { -fx-text-fill: -error-text; }
+
 .btn-ghost {
     -fx-background-color: transparent;
     -fx-border-width: 0;
@@ -160,6 +169,9 @@
     -fx-text-fill: -accent-text;
     -fx-max-width: 760px;
 }
+
+.system-message--error { -fx-text-fill: -error-text; }
+.system-message--success { -fx-text-fill: -success; }
 
 .stepper-row {
     /* display: flex; */

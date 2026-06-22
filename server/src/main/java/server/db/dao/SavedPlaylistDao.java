@@ -30,8 +30,27 @@ public class SavedPlaylistDao {
         }
     }
 
+    public void upsert(int userId, String url, String name, int trackCount, String coverUrl)
+            throws InterruptedException, SQLException {
+        String sql = "INSERT INTO saved_playlists (user_id, url, name, track_count, cover_url) VALUES (?, ?, ?, ?, ?) "
+                + "ON CONFLICT(user_id, url) DO UPDATE SET name = excluded.name, "
+                + "track_count = excluded.track_count, cover_url = excluded.cover_url";
+        Connection conn = connectionPool.getConnection();
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, userId);
+            pstmt.setString(2, url);
+            pstmt.setString(3, name);
+            pstmt.setInt(4, trackCount);
+            pstmt.setString(5, coverUrl);
+            pstmt.executeUpdate();
+        } finally {
+            connectionPool.releaseConnection(conn);
+        }
+    }
+
     public List<SavedPlaylist> listForUser(int userId) throws InterruptedException, SQLException {
-        String sql = "SELECT url, name FROM saved_playlists WHERE user_id = ? ORDER BY created_at DESC";
+        String sql = "SELECT url, name, track_count, cover_url FROM saved_playlists WHERE user_id = ? ORDER BY created_at DESC";
         Connection conn = connectionPool.getConnection();
         List<SavedPlaylist> playlists = new ArrayList<>();
 
@@ -39,7 +58,8 @@ public class SavedPlaylistDao {
             pstmt.setInt(1, userId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    playlists.add(new SavedPlaylist(rs.getString("url"), rs.getString("name")));
+                    playlists.add(new SavedPlaylist(rs.getString("url"), rs.getString("name"),
+                            rs.getInt("track_count"), rs.getString("cover_url")));
                 }
             }
         } finally {

@@ -10,7 +10,10 @@ public final class SessionMessages {
     public record SubmitPlaylist(String playlistUrl) {
     }
 
-    public record SavedPlaylist(String url, String name) {
+    public record ValidatePlaylist(String playlistUrl) {
+    }
+
+    public record SavedPlaylist(String url, String name, int trackCount, String coverUrl) {
     }
 
     public record SavedPlaylists(List<SavedPlaylist> items) {

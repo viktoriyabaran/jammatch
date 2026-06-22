@@ -1,4 +1,4 @@
 package server.db.dao;
 
-public record SavedPlaylist(String url, String name) {
+public record SavedPlaylist(String url, String name, int trackCount, String coverUrl) {
 }
