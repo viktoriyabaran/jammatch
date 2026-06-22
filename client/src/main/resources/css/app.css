@@ -380,3 +380,86 @@
     -fx-background-radius: 50%;
     -fx-background-color: linear-gradient(from 0% 0% to 100% 100%,rgba(255,255,255,0.12) 0%, transparent 38%, transparent 68%, rgba(255,255,255,0.06) 100%);
 }
+
+/* round header */
+
+.round-label {
+    -fx-font-family: "Space Mono";
+    -fx-font-size: 15px;
+    -fx-text-fill: -ink;
+}
+
+.round-label--accent { -fx-text-fill: -accent-pink; }
+.round-label--dim { -fx-text-fill: -muted; }
+
+.round-prompt {
+    -fx-font-family: "Space Mono";
+    -fx-font-size: 22px;
+    -fx-text-fill: -ink;
+}
+
+/* timer */
+
+.timer-track {
+    -fx-min-height: 2px; -fx-pref-height: 2px; -fx-max-height: 2px;
+    -fx-background-color: -line-faint;
+}
+
+.timer-fill {
+    -fx-min-height: 2px; -fx-pref-height: 2px; -fx-max-height: 2px;
+    -fx-background-color: linear-gradient(to right, -accent-border 0%, -accent-pink 100%);
+    -fx-effect: dropshadow(gaussian, rgba(255,61,154,0.6), 14, 0.3, 0, 0);
+}
+
+.timer-time {
+    -fx-font-family: "Space Mono";
+    -fx-font-size: 15px;
+    -fx-text-fill: -accent-pink;
+}
+
+/* vote cards */
+
+.vote-card {
+    -fx-padding: 18 22;
+    -fx-border-width: 1;
+    -fx-border-style: solid;
+    -fx-border-color: -line-faint;
+    -fx-background-color: transparent;
+}
+
+.vote-card:hover { -fx-border-color: -line-mute; }
+
+.vote-card--selected {
+    -fx-border-color: -accent-pink;
+    -fx-background-color: rgba(255,61,154,0.08);
+    -fx-effect: dropshadow(gaussian, rgba(255,61,154,0.25), 20, 0, 0, 0);
+}
+
+.vote-card__name {
+    -fx-font-family: "Space Mono";
+    -fx-font-size: 15px;
+    -fx-text-fill: -ink;
+}
+
+.vote-card__check { -fx-font-size: 14px; -fx-text-fill: -accent-pink; }
+
+.vote-card__voted {
+    -fx-min-width: 9px; -fx-min-height: 9px;
+    -fx-pref-width: 9px; -fx-pref-height: 9px;
+    -fx-max-width: 9px; -fx-max-height: 9px;
+    -fx-background-radius: 5;
+    -fx-background-color: -success;
+}
+
+/* countdown overlay */
+
+.countdown-overlay {
+    -fx-background-color: rgba(8, 4, 12, 0.82);
+}
+
+.countdown-num {
+    -fx-font-family: "Space Grotesk Light";
+    -fx-font-size: 200px;
+    -fx-text-fill: -ink;
+    -fx-effect: dropshadow(gaussian, rgba(255,61,154,0.55), 70, 0.2, 0, 0);
+}
