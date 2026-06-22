@@ -58,7 +58,7 @@ public class JoinRoomScreen extends BorderPane {
         setCenter(column);
         BorderPane.setAlignment(column, Pos.CENTER);
         setPadding(new Insets(36, 80, 36, 80));
-        getStyleClass().add("bg-corner");
+        getStyleClass().add("bg-center");
     }
 
     private static JButton getJoinRoomButton(AppContext ctx, TextField roomCode, JSystemMessage systemMessage) {
