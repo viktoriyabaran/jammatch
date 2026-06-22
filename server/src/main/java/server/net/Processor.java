@@ -169,6 +169,7 @@ public class Processor implements Runnable {
                     GameRoom r = hostRoom.get();
                     if (r.removePlayer(kickData.targetUserId())) {
                         roomManager.removePlayerFromAllRooms(kickData.targetUserId());
+                        sendRoomClosed(kickData.targetUserId(), "You were removed by the host");
                         broadcastLobbyUpdate(r); // Оновлюємо лоббі для інших
                     }
                     return buildSuccess(request, "{\"status\":\"OK\"}");
@@ -239,6 +240,13 @@ public class Processor implements Runnable {
             return "Playlist is private or unavailable";
         }
         return "Couldn't reach YouTube, please try again";
+    }
+
+    private void sendRoomClosed(int userId, String reason) {
+        common.messages.RoomMessages.RoomClosed closed = new common.messages.RoomMessages.RoomClosed(reason);
+        byte[] payload = gson.toJson(closed).getBytes(StandardCharsets.UTF_8);
+        Message eventMsg = new Message(CommandType.ROOM_CLOSED.code(), userId, payload);
+        sessionManager.sendToUser(userId, new Packet((byte) 0, 0, eventMsg));
     }
 
     private void broadcastLobbyUpdate(GameRoom room) {
