@@ -27,7 +27,7 @@ public class GameRoundScreen extends StackPane {
     private record Player(int id, String nickname, int badge) {}
 
     private static final int TOTAL_ROUNDS = 5;
-    private static final int ROUND_SECONDS = 30;
+    private static final int ROUND_SECONDS = 10;
 
     private static final List<Player> PLAYERS = List.of(
             new Player(1, "vika_b", 1),
@@ -49,7 +49,6 @@ public class GameRoundScreen extends StackPane {
 
     private final int currentRound = 3;
     private final int myScore = 640;
-    private final int trackOwnerId = 2;
     private Integer myVote = null;
 
     private final JLabel status = new JLabel("", JLabel.Type.META);
@@ -192,13 +191,6 @@ public class GameRoundScreen extends StackPane {
     }
 
     private void showResult() {
-        ctx.show(new RoundResultScreen(ctx, currentRound, TOTAL_ROUNDS,
-                ROUND_COVERS.get(currentRound - 1), nicknameOf(trackOwnerId),
-                myVote != null && myVote == trackOwnerId, myScore));
-    }
-
-    private String nicknameOf(int playerId) {
-        return PLAYERS.stream().filter(p -> p.id() == playerId).findFirst()
-                .map(Player::nickname).orElse("?");
+        ctx.show(new RoundResultScreen(ctx));
     }
 }

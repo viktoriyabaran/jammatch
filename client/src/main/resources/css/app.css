@@ -463,3 +463,64 @@
     -fx-text-fill: -ink;
     -fx-effect: dropshadow(gaussian, rgba(255,61,154,0.55), 70, 0.2, 0, 0);
 }
+
+/* result screen */
+
+.result-label {
+    -fx-font-family: "Space Mono";
+    -fx-font-size: 13px;
+    -fx-text-fill: -ink;
+}
+
+.result-label--accent { -fx-text-fill: -accent-pink; }
+.result-label--dim { -fx-text-fill: -muted; }
+
+.fg-badge-1 { -fx-text-fill: -badge-1; }
+.fg-badge-2 { -fx-text-fill: -badge-2; }
+.fg-badge-3 { -fx-text-fill: -badge-3; }
+.fg-badge-4 { -fx-text-fill: -badge-4; }
+.fg-badge-5 { -fx-text-fill: -badge-5; }
+.fg-badge-6 { -fx-text-fill: -badge-6; }
+.fg-badge-7 { -fx-text-fill: -badge-7; }
+
+.result-cover {
+    -fx-min-width: 180px; -fx-min-height: 180px;
+    -fx-max-width: 180px; -fx-max-height: 180px;
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #3a2150 0%, #241433 48%, #160b20 100%);
+    -fx-border-width: 1;
+    -fx-border-style: solid;
+    -fx-border-color: -line-faint;
+}
+
+.result-row {
+    -fx-padding: 12 2;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-style: solid;
+    -fx-border-color: -line-faint;
+}
+
+.result-vote__voter { -fx-font-family: "Space Mono"; -fx-font-size: 13px; -fx-text-fill: -ink; }
+.result-vote__arrow { -fx-font-family: "Space Mono"; -fx-font-size: 13px; -fx-text-fill: -line-mute; }
+.result-vote__target { -fx-font-family: "Space Mono"; -fx-font-size: 13px; -fx-text-fill: -ink-dim; }
+.result-vote__correct { -fx-font-family: "Space Mono"; -fx-font-size: 12px; -fx-text-fill: -success; }
+.result-vote__wrong { -fx-font-family: "Space Mono"; -fx-font-size: 14px; -fx-text-fill: -muted; }
+
+.lb-row { -fx-padding: 11 2; }
+
+.result-rank {
+    -fx-font-family: "Space Mono";
+    -fx-font-size: 13px;
+    -fx-text-fill: -line-mute;
+    -fx-min-width: 14px;
+}
+
+.lb-name { -fx-font-family: "Space Mono"; -fx-font-size: 13px; -fx-text-fill: -ink; }
+.lb-delta { -fx-font-family: "Space Mono"; -fx-font-size: 12px; -fx-text-fill: -accent-pink; }
+.lb-delta--dim { -fx-text-fill: -line-mute; }
+.lb-bolt { -fx-font-size: 11px; }
+.lb-score { -fx-font-family: "Space Grotesk Light"; -fx-font-size: 20px; -fx-text-fill: -ink; }
+
+.result-divider {
+    -fx-min-height: 1px; -fx-pref-height: 1px; -fx-max-height: 1px;
+    -fx-background-color: -line-faint;
+}
