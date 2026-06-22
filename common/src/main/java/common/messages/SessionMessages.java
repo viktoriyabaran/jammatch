@@ -7,6 +7,9 @@ public final class SessionMessages {
     public record ClientLogin(String nickname, String clientToken) {
     }
 
+    public record LookupNickname(String clientToken) {
+    }
+
     public record SubmitPlaylist(String playlistUrl) {
     }
 

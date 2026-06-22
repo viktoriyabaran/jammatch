@@ -8,6 +8,7 @@ import common.messages.RoomMessages.LobbyUpdate;
 import common.messages.RoomMessages.RoomClosed;
 import common.messages.RoomMessages.RoomConfig;
 import common.messages.SessionMessages.ClientLogin;
+import common.messages.SessionMessages.LookupNickname;
 import common.messages.SessionMessages.SavedPlaylist;
 import common.messages.SessionMessages.SavedPlaylists;
 import common.messages.SessionMessages.SubmitPlaylist;
@@ -35,6 +36,12 @@ public class GameApi {
                 session.login(Integer.parseInt(body), nickname);
                 onSuccess.run();
             }
+        });
+    }
+
+    public void lookupNickname(Consumer<String> handler) {
+        conn.send(CommandType.LOOKUP_NICKNAME, 0, new LookupNickname(session.clientToken()), body -> {
+            handler.accept(ServerConnection.isError(body) ? "" : body);
         });
     }
 

@@ -173,6 +173,9 @@
 .system-message--error { -fx-text-fill: -error-text; }
 .system-message--success { -fx-text-fill: -success; }
 
+.copyable { -fx-cursor: hand; }
+.copyable:hover { -fx-underline: true; }
+
 .stepper-row {
     /* display: flex; */
     -fx-spacing: 16;

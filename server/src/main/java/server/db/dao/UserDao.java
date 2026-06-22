@@ -66,6 +66,23 @@ public class UserDao {
         }
     }
 
+    public Optional<String> findNicknameByToken(String clientToken) throws InterruptedException, SQLException {
+        String sql = "SELECT nickname FROM users WHERE client_token = ?";
+        Connection conn = connectionPool.getConnection();
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, clientToken);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.ofNullable(rs.getString("nickname"));
+                }
+            }
+        } finally {
+            connectionPool.releaseConnection(conn);
+        }
+        return Optional.empty();
+    }
+
     public Optional<String> getUserNickname(int id) throws InterruptedException, SQLException {
         String sql = "SELECT nickname FROM users WHERE id = ?";
         Connection conn = connectionPool.getConnection();

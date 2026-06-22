@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import common.protocol.*;
 import common.contracts.*;
 import common.messages.SessionMessages.ClientLogin;
+import common.messages.SessionMessages.LookupNickname;
 import common.messages.SessionMessages.SavedPlaylist;
 import common.messages.SessionMessages.SavedPlaylists;
 import common.messages.SessionMessages.SubmitPlaylist;
@@ -80,6 +81,11 @@ public class Processor implements Runnable {
 
                     sessionManager.register(userId, output);
                     return buildSuccess(request, String.valueOf(userId));
+
+                case LOOKUP_NICKNAME:
+                    LookupNickname lookupData = gson.fromJson(payloadStr, LookupNickname.class);
+                    String knownNickname = userDao.findNicknameByToken(lookupData.clientToken()).orElse("");
+                    return buildSuccess(request, knownNickname);
 
                 case CREATE_ROOM:
                     RoomConfig config = gson.fromJson(payloadStr, RoomConfig.class);

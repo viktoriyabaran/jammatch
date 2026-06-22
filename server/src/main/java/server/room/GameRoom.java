@@ -41,7 +41,7 @@ public class GameRoom {
                     return false;
                 }
             }
-            players.add(new PlayerInfo(id, nickname, hasPlaylist));
+            players.add(new PlayerInfo(id, nickname, hasPlaylist, 0));
             return true;
         } finally {
             lock.unlock();
@@ -168,7 +168,8 @@ public class GameRoom {
             for (int i = 0; i < players.size(); i++) {
                 PlayerInfo p = players.get(i);
                 if (p.id() == userId) {
-                    players.set(i, new PlayerInfo(p.id(), p.nickname(), true));
+                    int songCount = resolvedSongs.getOrDefault(userId, List.of()).size();
+                    players.set(i, new PlayerInfo(p.id(), p.nickname(), true, songCount));
                     return;
                 }
             }

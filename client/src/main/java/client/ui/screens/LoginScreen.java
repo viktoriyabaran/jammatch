@@ -36,6 +36,11 @@ public class LoginScreen extends BorderPane {
         nickname.setMinWidth(COLUMN_WIDTH);
         nickname.setMaxWidth(COLUMN_WIDTH);
         nickname.textProperty().addListener((obs, was, now) -> systemMessage.clear());
+        ctx.api().lookupNickname(saved -> {
+            if (!saved.isBlank() && nickname.getText().isEmpty()) {
+                nickname.setText(saved);
+            }
+        });
         var field = new VBox(14, nicknameLabel, nickname);
 
         var continueButton = getContinueButton(ctx, nickname, systemMessage);

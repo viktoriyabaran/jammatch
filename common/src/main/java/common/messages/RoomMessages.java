@@ -19,7 +19,7 @@ public final class RoomMessages {
     public record RoomSettings(int maxPlayers, int rounds, int roundDurationSeconds) {
     }
 
-    public record PlayerInfo(int id, String nickname, boolean hasPlaylist) {
+    public record PlayerInfo(int id, String nickname, boolean hasPlaylist, int songCount) {
     }
 
     public record LobbyUpdate(String roomCode, String roomName, RoomSettings settings, int hostId,

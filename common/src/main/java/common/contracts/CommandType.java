@@ -6,6 +6,7 @@ public enum CommandType {
     SUBMIT_PLAYLIST(101),
     LIST_SAVED_PLAYLISTS(102),
     VALIDATE_PLAYLIST(103),
+    LOOKUP_NICKNAME(104),
 
     // Room management
     CREATE_ROOM(200),

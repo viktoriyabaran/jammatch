@@ -10,6 +10,8 @@ import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
@@ -46,8 +48,21 @@ public class LobbyScreen extends BorderPane {
     private HBox buildHeader(LobbyUpdate update) {
         var sectionName = new JLabel("LOBBY", JLabel.Type.SECTION);
         var roomName = new JLabel(update.roomName(), JLabel.Type.DISPLAY);
+
         var roomCode = new JLabel(update.roomCode(), JLabel.Type.CODE);
-        var roomInfo = new VBox(6, sectionName, roomName, roomCode);
+        roomCode.getStyleClass().add("copyable");
+        roomCode.setCursor(Cursor.HAND);
+        var copied = new JLabel("", JLabel.Type.META);
+        copied.getStyleClass().add("system-message--success");
+        roomCode.setOnMouseClicked(e -> {
+            var content = new ClipboardContent();
+            content.putString(update.roomCode());
+            Clipboard.getSystemClipboard().setContent(content);
+            copied.setText("COPIED ;)");
+        });
+        var codeRow = new HBox(12, roomCode, copied);
+        codeRow.setAlignment(Pos.CENTER_LEFT);
+        var roomInfo = new VBox(6, sectionName, roomName, codeRow);
 
         var roundCount = new JLabel(update.settings().rounds() + " ROUNDS", JLabel.Type.SUBTITLE);
         var roundDuration = new JLabel(update.settings().roundDurationSeconds() + " SECONDS / ROUND",
@@ -102,6 +117,10 @@ public class LobbyScreen extends BorderPane {
         row.setAlignment(Pos.CENTER_LEFT);
         row.setCursor(Cursor.DEFAULT);
         row.setMaxWidth(Double.MAX_VALUE);
+
+        var songs = new Label(player.hasPlaylist() ? player.songCount() + " SONGS" : "LOADING..");
+        songs.getStyleClass().add("row__meta");
+        row.getChildren().add(songs);
 
         boolean isMe = player.id() == ctx.session().userId();
         boolean isHost = player.id() == hostId;
