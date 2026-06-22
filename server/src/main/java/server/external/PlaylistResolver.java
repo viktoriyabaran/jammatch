@@ -10,11 +10,14 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PlaylistResolver {
     private final YouTubeClient youTube;
     private final SpotifyClient spotify;
     private final SongCacheDao songCache;
+    private final Map<String, List<ResolvedTrack>> previewCache = new ConcurrentHashMap<>();
 
     public PlaylistResolver(YouTubeClient youTube, SpotifyClient spotify, SongCacheDao songCache) {
         this.youTube = youTube;
@@ -24,13 +27,19 @@ public class PlaylistResolver {
 
     public PlaylistPreview preview(String playlistUrl) throws IOException, InterruptedException {
         List<ResolvedTrack> tracks = youTube.fetchTracks(playlistUrl);
+        if (!tracks.isEmpty()) {
+            previewCache.put(YouTubeClient.playlistId(playlistUrl), tracks);
+        }
         String name = youTube.fetchPlaylistTitle(playlistUrl);
         String cover = tracks.isEmpty() ? null : tracks.get(0).youtubeThumbnail();
         return new PlaylistPreview(name, tracks.size(), cover);
     }
 
     public List<String> resolve(String playlistUrl) throws IOException, InterruptedException {
-        List<ResolvedTrack> tracks = youTube.fetchTracks(playlistUrl);
+        List<ResolvedTrack> tracks = previewCache.remove(YouTubeClient.playlistId(playlistUrl));
+        if (tracks == null) {
+            tracks = youTube.fetchTracks(playlistUrl);
+        }
 
         List<String> videoIds = new ArrayList<>();
         for (ResolvedTrack track : tracks) {

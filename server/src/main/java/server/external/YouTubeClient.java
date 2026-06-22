@@ -34,7 +34,7 @@ public class YouTubeClient {
     public List<ResolvedTrack> fetchTracks(String playlistLink) throws IOException, InterruptedException {
         Map<String, String> params = new LinkedHashMap<>();
         params.put("part", "snippet,contentDetails");
-        params.put("playlistId", parseLink(playlistLink));
+        params.put("playlistId", playlistId(playlistLink));
         params.put("key", apiKey);
 
         List<ResolvedTrack> tracks = new ArrayList<>();
@@ -83,7 +83,7 @@ public class YouTubeClient {
     public String fetchPlaylistTitle(String playlistLink) throws IOException, InterruptedException {
         Map<String, String> params = new LinkedHashMap<>();
         params.put("part", "snippet");
-        params.put("id", parseLink(playlistLink));
+        params.put("id", playlistId(playlistLink));
         params.put("key", apiKey);
 
         JsonObject json = http.get(BASE + "/playlists" + HttpJson.query(params), Map.of());
@@ -95,7 +95,7 @@ public class YouTubeClient {
         return str(snippet, "title");
     }
 
-    private String parseLink(String playlistLink) {
+    public static String playlistId(String playlistLink) {
         int index = playlistLink.indexOf("list=");
         if (index < 0) {
             return playlistLink;
