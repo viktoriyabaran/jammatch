@@ -115,8 +115,7 @@ public class GameApi {
         });
     }
 
-    public void startGame() {
-        conn.send(CommandType.START_GAME, session.userId(), null, body -> {
-        });
+    public void startGame(Runnable onDone) {
+        conn.send(CommandType.START_GAME, session.userId(), null, body -> onDone.run());
     }
 }

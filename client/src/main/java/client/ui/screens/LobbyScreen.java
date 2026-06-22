@@ -29,7 +29,7 @@ public class LobbyScreen extends BorderPane {
     public LobbyScreen(AppContext ctx) {
         this.ctx = ctx;
         setPadding(new Insets(36, 80, 36, 80));
-        getStyleClass().add("bg-corner");
+        getStyleClass().add("bg-center");
 
         ctx.api().onRoomClosed(reason -> {
             new Alert(Alert.AlertType.INFORMATION, reason).showAndWait();
@@ -153,7 +153,7 @@ public class LobbyScreen extends BorderPane {
 
         if (host) {
             var startGame = new JButton("START GAME", JButton.Variant.PRIMARY,
-                    () -> ctx.api().startGame());
+                    () -> ctx.api().startGame(() -> ctx.show(new GameRoundScreen(ctx))));
             startGame.setMaxWidth(Double.MAX_VALUE);
             HBox.setHgrow(startGame, Priority.ALWAYS);
             actions.getChildren().add(startGame);
