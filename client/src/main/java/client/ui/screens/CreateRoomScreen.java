@@ -4,6 +4,7 @@ import client.ui.AppContext;
 import client.ui.components.JButton;
 import client.ui.components.JLabel;
 import client.ui.components.JStepper;
+import client.ui.components.JSystemMessage;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -13,6 +14,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.TextAlignment;
 
 public class CreateRoomScreen extends BorderPane {
 
@@ -23,7 +25,14 @@ public class CreateRoomScreen extends BorderPane {
         back.setCursor(Cursor.HAND);
         back.setOnMouseClicked(e -> ctx.show(new MainMenuScreen(ctx)));
 
-        var status = new JLabel("", JLabel.Type.META);
+        var systemMessage = new JSystemMessage();
+        systemMessage.setTextAlignment(TextAlignment.RIGHT);
+        systemMessage.setMaxWidth(460);
+        var top = new BorderPane();
+        top.setLeft(back);
+        top.setRight(systemMessage);
+        BorderPane.setAlignment(back, Pos.TOP_LEFT);
+        BorderPane.setAlignment(systemMessage, Pos.TOP_RIGHT);
 
         var section = new JLabel("CREATE", JLabel.Type.SECTION);
 
@@ -32,6 +41,7 @@ public class CreateRoomScreen extends BorderPane {
         roomName.getStyleClass().add("input");
         roomName.setMinWidth(COLUMN_WIDTH);
         roomName.setMaxWidth(COLUMN_WIDTH);
+        roomName.textProperty().addListener((obs, was, now) -> systemMessage.clear());
         var field = new VBox(14, roomNameLabel, roomName);
 
         var rounds = new JStepper("ROUNDS", 1, 20, 1, 5, "");
@@ -48,16 +58,17 @@ public class CreateRoomScreen extends BorderPane {
             int roundNumber = rounds.value();
             int roundDuration = duration.value();
             if (roomNameTrimmed.isEmpty()) {
-                status.setText("Enter a room name");
+                systemMessage.error("Enter a room name");
                 return;
             }
             // todo: add after the playlist has been connected
             ctx.api().createRoom(roomNameTrimmed,roundNumber, roundDuration,
                     () -> ctx.show(new AddPlaylistScreen(ctx)),
-                    status::setText);
+                    systemMessage::error);
         });
         createRoomButton.setMinWidth(COLUMN_WIDTH);
         createRoomButton.setMaxWidth(COLUMN_WIDTH);
+        systemMessage.markOnError(roomName, createRoomButton);
 
         var column = new VBox(section, field, stepperRow, createRoomButton);
         column.setAlignment(Pos.CENTER_LEFT);
@@ -66,7 +77,7 @@ public class CreateRoomScreen extends BorderPane {
         VBox.setMargin(stepperRow, new Insets(16, 0, 0, 0));
         VBox.setMargin(createRoomButton, new Insets(24, 0, 0, 0));
 
-        setTop(back);
+        setTop(top);
         setCenter(column);
         BorderPane.setAlignment(column, Pos.CENTER);
         setPadding(new Insets(36, 80, 36, 80));
