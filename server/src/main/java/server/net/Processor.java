@@ -16,12 +16,18 @@ import common.messages.RoomMessages.JoinRoom;
 import common.messages.RoomMessages.LobbyUpdate;
 import common.messages.RoomMessages.PlayerInfo;
 import server.db.dao.RoomDao;
+import server.db.dao.RoundDao;
 import server.db.dao.SavedPlaylistDao;
 import server.db.dao.UserDao;
+import server.db.dao.GameDao;
+import server.db.dao.GameParticipantDao;
+import server.db.dao.GameSongDao;
 import server.external.PlaylistResolver;
 import server.external.model.PlaylistPreview;
 import server.room.GameRoom;
 import server.room.RoomManager;
+import server.game.GameEngine;
+import server.game.GameManager;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -45,11 +51,19 @@ public class Processor implements Runnable {
     private final SessionManager sessionManager;
     private final SavedPlaylistDao savedPlaylistDao;
     private final PlaylistResolver playlistResolver;
+
+    private final GameDao gameDao;
+    private final GameParticipantDao participantDao;
+    private final GameSongDao songDao;
+    private final GameManager gameManager;
+    private final RoundDao roundDao;
+
     private final Gson gson = new Gson();
 
     public Processor(BlockingQueue<Packet> input, BlockingQueue<Packet> output, UserDao userDao, RoomDao roomDao,
             RoomManager roomManager, SessionManager sessionManager, SavedPlaylistDao savedPlaylistDao,
-            PlaylistResolver playlistResolver) {
+            PlaylistResolver playlistResolver, GameDao gameDao, GameParticipantDao participantDao,
+            GameSongDao songDao, GameManager gameManager, RoundDao roundDao) {
         this.input = input;
         this.output = output;
         this.userDao = userDao;
@@ -58,6 +72,12 @@ public class Processor implements Runnable {
         this.sessionManager = sessionManager;
         this.savedPlaylistDao = savedPlaylistDao;
         this.playlistResolver = playlistResolver;
+
+        this.gameDao = gameDao;
+        this.participantDao = participantDao;
+        this.songDao = songDao;
+        this.gameManager = gameManager;
+        this.roundDao = roundDao;
     }
 
     private Packet process(Packet request) {
@@ -127,6 +147,37 @@ public class Processor implements Runnable {
                     broadcastLobbyUpdate(roomToJoin);
                     return joinResponse;
 
+                case START_GAME:
+                    int startRequesterId = msg.getbUserId();
+                    Optional<GameRoom> startRoomOpt = roomManager.getRoomByUserId(startRequesterId);
+
+                    if (startRoomOpt.isEmpty() || startRoomOpt.get().getHostId() != startRequesterId) {
+                        return buildError(request, "Only host can start the game");
+                    }
+
+                    GameRoom rToStart = startRoomOpt.get();
+                    if (rToStart.isGameStarted()) {
+                        return buildError(request, "Game already started");
+                    }
+
+                    GameEngine engine = new GameEngine(rToStart, sessionManager, roomDao,
+                            gameDao, participantDao, songDao, roundDao);
+                    gameManager.addGame(rToStart.getRoomCode(), engine);
+
+                    return buildSuccess(request, "{\"status\":\"OK\"}");
+
+                case SUBMIT_VOTE:
+                    common.messages.GameMessages.SubmitVote voteData = gson.fromJson(payloadStr,
+                            common.messages.GameMessages.SubmitVote.class);
+                    int voterId = msg.getbUserId();
+
+                    roomManager.getRoomByUserId(voterId).ifPresent(r -> {
+                        gameManager.getGame(r.getRoomCode()).ifPresent(activeGame -> {
+                            activeGame.submitVote(voterId, voteData.votedUserId());
+                        });
+                    });
+                    return buildSuccess(request, "{\"status\":\"OK\"}");
+
                 case LEAVE_ROOM:
                     int leaveUserId = msg.getbUserId();
                     Optional<GameRoom> userRoom = roomManager.getRoomByUserId(leaveUserId);
@@ -194,6 +245,7 @@ public class Processor implements Runnable {
                     try {
                         preview = playlistResolver.preview(validateUrl);
                     } catch (IOException e) {
+                        e.printStackTrace();
                         return buildError(request, friendlyPlaylistError(e));
                     }
                     if (preview.trackCount() == 0) {
@@ -201,8 +253,10 @@ public class Processor implements Runnable {
                     }
 
                     String previewName = preview.name() != null ? preview.name() : "Untitled playlist";
-                    savedPlaylistDao.upsert(validateUserId, validateUrl, previewName, preview.trackCount(), preview.coverUrl());
-                    SavedPlaylist validated = new SavedPlaylist(validateUrl, previewName, preview.trackCount(), preview.coverUrl());
+                    savedPlaylistDao.upsert(validateUserId, validateUrl, previewName, preview.trackCount(),
+                            preview.coverUrl());
+                    SavedPlaylist validated = new SavedPlaylist(validateUrl, previewName, preview.trackCount(),
+                            preview.coverUrl());
                     return buildSuccess(request, gson.toJson(validated));
 
                 case LIST_SAVED_PLAYLISTS:
