@@ -20,14 +20,18 @@ public enum CommandType {
     // Game management
     START_GAME(301),
     SUBMIT_VOTE(302),
+    PLAYER_READY(303),
     ROUND_START(310),
     ROUND_END(311),
-    GAME_OVER(312);
+    GAME_OVER(312),
+    READY_UPDATE(313);
 
     private final int code;
+
     CommandType(int code) {
         this.code = code;
     }
+
     public int code() {
         return code;
     }

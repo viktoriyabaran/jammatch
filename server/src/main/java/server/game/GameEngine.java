@@ -24,6 +24,7 @@ public class GameEngine {
     private final GameParticipantDao participantDao;
     private final GameSongDao songDao;
     private final RoundDao roundDao;
+    private final Set<Integer> readyPlayers = ConcurrentHashMap.newKeySet();
 
     private int gameId;
     private int currentRound = 0;
@@ -194,7 +195,21 @@ public class GameEngine {
         RoundEnd roundEndMsg = new RoundEnd(currentRound, currentCorrectUserId, results);
         broadcast(CommandType.ROUND_END, gson.toJson(roundEndMsg));
 
-        timer.schedule(this::startNextRound, 5, TimeUnit.SECONDS);
+    }
+
+    public void markPlayerReady(int userId) {
+        readyPlayers.add(userId);
+
+        int readyCount = readyPlayers.size();
+        int totalCount = room.getPlayers().size();
+
+        ReadyUpdate updateMsg = new ReadyUpdate(readyCount, totalCount);
+        broadcast(CommandType.READY_UPDATE, gson.toJson(updateMsg));
+
+        if (readyCount >= totalCount) {
+            readyPlayers.clear();
+            startNextRound();
+        }
     }
 
     private void endGame() {

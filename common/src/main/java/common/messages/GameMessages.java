@@ -8,7 +8,7 @@ public final class GameMessages {
     }
 
     public record RoundStart(int roundNumber, int totalRounds, String videoId, int durationSeconds,
-                             List<Integer> options) {
+            List<Integer> options) {
     }
 
     public record RoundResult(int userId, int votedUserId, boolean correct, int roundPoints, int totalScore) {
@@ -21,5 +21,8 @@ public final class GameMessages {
     }
 
     public record GameOver(List<LeaderboardEntry> leaderboard) {
+    }
+
+    public record ReadyUpdate(int readyCount, int totalCount) {
     }
 }

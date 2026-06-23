@@ -163,7 +163,6 @@ public class Processor implements Runnable {
                     GameEngine engine = new GameEngine(rToStart, sessionManager, roomDao,
                             gameDao, participantDao, songDao, roundDao);
                     gameManager.addGame(rToStart.getRoomCode(), engine);
-
                     return buildSuccess(request, "{\"status\":\"OK\"}");
 
                 case SUBMIT_VOTE:
@@ -258,6 +257,17 @@ public class Processor implements Runnable {
                     SavedPlaylist validated = new SavedPlaylist(validateUrl, previewName, preview.trackCount(),
                             preview.coverUrl());
                     return buildSuccess(request, gson.toJson(validated));
+
+                case PLAYER_READY:
+                    int readyUserId = msg.getbUserId();
+
+                    roomManager.getRoomByUserId(readyUserId).ifPresent(readyRoom -> {
+                        gameManager.getGame(readyRoom.getRoomCode()).ifPresent(activeGame -> {
+                            activeGame.markPlayerReady(readyUserId);
+                        });
+                    });
+
+                    return buildSuccess(request, "{\"status\":\"OK\"}");
 
                 case LIST_SAVED_PLAYLISTS:
                     java.util.List<SavedPlaylist> playlists = savedPlaylistDao.listForUser(msg.getbUserId()).stream()
