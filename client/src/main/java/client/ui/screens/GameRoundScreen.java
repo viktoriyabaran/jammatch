@@ -1,11 +1,13 @@
 package client.ui.screens;
 
+import client.net.GameState;
 import client.ui.AppContext;
 import client.ui.components.JCountdown;
 import client.ui.components.JLabel;
 import client.ui.components.JTimer;
 import client.ui.components.JVinyl;
-import javafx.animation.FadeTransition;
+import common.messages.GameMessages.RoundEnd;
+import common.messages.GameMessages.RoundStart;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -17,73 +19,84 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.util.Duration;
 
 import java.util.List;
-import java.util.Set;
 
 public class GameRoundScreen extends StackPane {
 
-    private record Player(int id, String nickname, int badge) {}
-
-    private static final int TOTAL_ROUNDS = 5;
-    private static final int ROUND_SECONDS = 10;
-
-    private static final List<Player> PLAYERS = List.of(
-            new Player(1, "vika_b", 1),
-            new Player(2, "dmytro", 2),
-            new Player(3, "olena", 3),
-            new Player(4, "marko", 4),
-            new Player(5, "sofi", 5));
-
-    private static final List<String> ROUND_COVERS = List.of(
-            "https://i.scdn.co/image/ab67616d0000b27336980633307bdb638a88ce87",
-            "https://i.scdn.co/image/ab67616d0000b27336980633307bdb638a88ce87",
-            "https://i.scdn.co/image/ab67616d0000b27336980633307bdb638a88ce87",
-            "https://i.scdn.co/image/ab67616d0000b27336980633307bdb638a88ce87",
-            "https://i.scdn.co/image/ab67616d0000b27336980633307bdb638a88ce87");
-
-    private static final Set<Integer> VOTED = Set.of(1, 3, 5);
+    private static final int COUNTDOWN_FROM = 3;
 
     private final AppContext ctx;
+    private final GameState game;
+    private final int roundNumber;
+    private final List<Integer> options;
+    private final BorderPane content = new BorderPane();
 
-    private final int currentRound = 3;
-    private final int myScore = 640;
     private Integer myVote = null;
+    private int votedCount = 0;
+    private int totalVoters;
 
     private final JLabel status = new JLabel("", JLabel.Type.META);
     private final HBox votes = new HBox(16);
-    private final VBox header = new VBox(20);
-    private final BorderPane content = new BorderPane();
-    private final JCountdown countdown = new JCountdown(3, this::startRound);
+    private JTimer timer;
 
-    public GameRoundScreen(AppContext ctx) {
+    private JCountdown countdown;
+    private boolean countdownShown = false;
+    private boolean deferNavigation = false;
+    private boolean countdownDone = false;
+    private RoundEnd pendingEnd;
+
+    public GameRoundScreen(AppContext ctx, RoundStart rs) {
         this.ctx = ctx;
+        this.game = ctx.game();
+        this.roundNumber = rs.roundNumber();
+        this.options = rs.options();
+        this.totalVoters = game.order().size();
+
         getStyleClass().add("bg-bloom");
+        content.setPadding(new Insets(36, 80, 36, 80));
+        getChildren().add(content);
 
         ctx.api().onRoomClosed(reason -> {
             new Alert(Alert.AlertType.INFORMATION, reason).showAndWait();
             ctx.show(new MainMenuScreen(ctx));
         });
+        ctx.api().onVoteProgress(vp -> {
+            votedCount = vp.votedCount();
+            totalVoters = vp.totalCount();
+            refreshStatus();
+            if (totalVoters > 0 && votedCount >= totalVoters) {
+                showCountdown(false);
+            }
+        });
+        ctx.api().onRoundEnd(re -> {
+            if (re.roundNumber() != roundNumber) {
+                return;
+            }
+            if (timer != null) {
+                timer.stop();
+            }
+            pendingEnd = re;
+            if (!deferNavigation || countdownDone) {
+                advance();
+            }
+        });
 
-        content.setPadding(new Insets(36, 80, 36, 80));
-        content.setTop(buildHeader());
-        content.setCenter(buildStage());
+        content.setTop(buildHeader(rs));
+        content.setCenter(buildStage(rs));
         content.setBottom(buildVotes());
-
-        getChildren().addAll(content, countdown);
     }
 
-    private VBox buildHeader() {
+    private VBox buildHeader(RoundStart rs) {
         var round = new HBox(8,
                 roundPart("ROUND", "round-label"),
-                roundPart(String.valueOf(currentRound), "round-label--accent"),
-                roundPart("OF " + TOTAL_ROUNDS, "round-label"));
+                roundPart(String.valueOf(roundNumber), "round-label--accent"),
+                roundPart("OF " + rs.totalRounds(), "round-label"));
         round.setAlignment(Pos.CENTER_LEFT);
 
         var score = new HBox(14,
                 roundPart("YOUR SCORE", "round-label--dim"),
-                roundPart(String.valueOf(myScore), "round-label"));
+                roundPart(String.valueOf(game.score(ctx.session().userId())), "round-label"));
         score.setAlignment(Pos.CENTER_RIGHT);
 
         var spacer = new Region();
@@ -91,19 +104,9 @@ public class GameRoundScreen extends StackPane {
         var topRow = new HBox(round, spacer, score);
         topRow.setAlignment(Pos.CENTER_LEFT);
 
-        header.getChildren().add(topRow);
-        return header;
-    }
-
-    private void startRound() {
-        var fade = new FadeTransition(Duration.millis(280), countdown);
-        fade.setFromValue(1);
-        fade.setToValue(0);
-        fade.setOnFinished(e -> {
-            getChildren().remove(countdown);
-            header.getChildren().add(new JTimer(ROUND_SECONDS, this::showResult));
-        });
-        fade.play();
+        timer = new JTimer(rs.durationSeconds(), null);
+        timer.atSecondsRemaining(COUNTDOWN_FROM, () -> showCountdown(true));
+        return new VBox(20, topRow, timer);
     }
 
     private Label roundPart(String text, String styleClass) {
@@ -112,8 +115,8 @@ public class GameRoundScreen extends StackPane {
         return label;
     }
 
-    private VBox buildStage() {
-        var vinyl = new JVinyl(ROUND_COVERS.get(currentRound - 1));
+    private VBox buildStage(RoundStart rs) {
+        var vinyl = new JVinyl(rs.coverUrl());
 
         var prompt = new Label("WHOSE TRACK IS THIS?");
         prompt.getStyleClass().add("round-prompt");
@@ -131,27 +134,26 @@ public class GameRoundScreen extends StackPane {
     }
 
     private void refreshStatus() {
-        int voted = VOTED.size();
-        status.setText(voted + " OF " + PLAYERS.size() + " VOTED" + (myVote != null ? "  ·  YOU VOTED" : ""));
+        status.setText(votedCount + " OF " + totalVoters + " VOTED" + (myVote != null ? "  ·  YOU VOTED" : ""));
     }
 
     private HBox buildVotes() {
         votes.getChildren().clear();
         votes.setAlignment(Pos.CENTER);
         BorderPane.setMargin(votes, new Insets(28, 0, 0, 0));
-        for (Player player : PLAYERS) {
-            var card = voteCard(player);
+        for (Integer id : options) {
+            var card = voteCard(id);
             HBox.setHgrow(card, Priority.ALWAYS);
             votes.getChildren().add(card);
         }
         return votes;
     }
 
-    private HBox voteCard(Player player) {
+    private HBox voteCard(int playerId) {
         var dot = new Region();
-        dot.getStyleClass().addAll("row__dot", "badge-" + player.badge());
+        dot.getStyleClass().addAll("row__dot", "badge-" + game.badge(playerId));
 
-        var name = new Label(player.nickname());
+        var name = new Label(game.nickname(playerId));
         name.getStyleClass().add("vote-card__name");
 
         var spacer = new Region();
@@ -162,21 +164,17 @@ public class GameRoundScreen extends StackPane {
         card.setAlignment(Pos.CENTER_LEFT);
         card.setMaxWidth(Double.MAX_VALUE);
 
-        boolean mine = myVote != null && myVote == player.id();
+        boolean mine = myVote != null && myVote == playerId;
         if (mine) {
             card.getStyleClass().add("vote-card--selected");
             var check = new Label("✓");
             check.getStyleClass().add("vote-card__check");
             card.getChildren().add(check);
-        } else if (VOTED.contains(player.id())) {
-            var votedDot = new Region();
-            votedDot.getStyleClass().add("vote-card__voted");
-            card.getChildren().add(votedDot);
         }
 
         if (myVote == null) {
             card.setCursor(Cursor.HAND);
-            card.setOnMouseClicked(e -> castVote(player.id()));
+            card.setOnMouseClicked(e -> castVote(playerId));
         }
         return card;
     }
@@ -186,11 +184,36 @@ public class GameRoundScreen extends StackPane {
             return;
         }
         myVote = playerId;
+        ctx.api().submitVote(roundNumber, playerId);
         refreshStatus();
-        buildVotes();
+        content.setBottom(buildVotes());
     }
 
-    private void showResult() {
-        ctx.show(new RoundResultScreen(ctx));
+    private void showCountdown(boolean votable) {
+        if (countdownShown) {
+            return;
+        }
+        countdownShown = true;
+        deferNavigation = !votable;
+        Runnable onComplete = votable ? () -> getChildren().remove(countdown) : this::onCountdownComplete;
+        countdown = new JCountdown(COUNTDOWN_FROM, onComplete, !votable);
+        getChildren().add(countdown);
+    }
+
+    private void onCountdownComplete() {
+        countdownDone = true;
+        if (pendingEnd != null) {
+            advance();
+        } else {
+            getChildren().remove(countdown);
+        }
+    }
+
+    private void advance() {
+        if (pendingEnd == null) {
+            return;
+        }
+        game.applyRoundEnd(pendingEnd);
+        ctx.show(new RoundResultScreen(ctx, pendingEnd));
     }
 }
