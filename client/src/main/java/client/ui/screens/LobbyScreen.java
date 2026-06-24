@@ -1,5 +1,6 @@
 package client.ui.screens;
 
+import client.net.GameState;
 import client.ui.AppContext;
 import client.ui.components.JButton;
 import client.ui.components.JLabel;
@@ -25,6 +26,7 @@ import java.util.List;
 public class LobbyScreen extends BorderPane {
 
     private final AppContext ctx;
+    private LobbyUpdate latest;
 
     public LobbyScreen(AppContext ctx) {
         this.ctx = ctx;
@@ -36,9 +38,19 @@ public class LobbyScreen extends BorderPane {
             ctx.show(new MainMenuScreen(ctx));
         });
         ctx.api().onLobbyUpdate(this::render);
+        ctx.api().onRoundStart(rs -> {
+            if (latest == null) {
+                return;
+            }
+            var state = new GameState(latest);
+            state.applyRoundStart(rs);
+            ctx.setGame(state);
+            ctx.show(new GameRoundScreen(ctx, rs));
+        });
     }
 
     private void render(LobbyUpdate update) {
+        this.latest = update;
         boolean host = update.hostId() == ctx.session().userId();
         setTop(buildHeader(update));
         setCenter(buildPlayers(update, host));
@@ -152,8 +164,7 @@ public class LobbyScreen extends BorderPane {
         BorderPane.setMargin(actions, new Insets(24, 0, 0, 0));
 
         if (host) {
-            var startGame = new JButton("START GAME", JButton.Variant.PRIMARY,
-                    () -> ctx.api().startGame(() -> ctx.show(new GameRoundScreen(ctx))));
+            var startGame = new JButton("START GAME", JButton.Variant.PRIMARY, () -> ctx.api().startGame(() -> {}));
             startGame.setMaxWidth(Double.MAX_VALUE);
             HBox.setHgrow(startGame, Priority.ALWAYS);
             actions.getChildren().add(startGame);
