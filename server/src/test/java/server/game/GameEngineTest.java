@@ -24,7 +24,7 @@ class GameEngineTest {
             room.addPlayer(i, "Player" + i, true);
         }
 
-        GameEngine engine = new GameEngine(room, null, null, null, null, null, null);
+        GameEngine engine = new GameEngine(room, null, null, null, null, null, null, null);
 
         setPrivateField(engine, "roundActive", new AtomicBoolean(true));
         setPrivateField(engine, "currentCorrectUserId", 42);

@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class GameEngine {
     private final GameRoom room;
+    private final GameManager gameManager;
     private final SessionManager sessionManager;
     private final RoomDao roomDao;
     private final GameDao gameDao;
@@ -45,11 +46,15 @@ public class GameEngine {
 
     private int currentCorrectUserId = -1;
     private String currentVideoId = null;
+    private String currentTitle = null;
+    private String currentArtist = null;
+    private String currentCoverUrl = null;
     private final Gson gson = new Gson();
 
-    public GameEngine(GameRoom room, SessionManager sessionManager, RoomDao roomDao,
+    public GameEngine(GameRoom room, GameManager gameManager, SessionManager sessionManager, RoomDao roomDao,
             GameDao gameDao, GameParticipantDao participantDao, GameSongDao songDao, RoundDao roundDao) {
         this.room = room;
+        this.gameManager = gameManager;
         this.sessionManager = sessionManager;
         this.roomDao = roomDao;
         this.gameDao = gameDao;
@@ -105,6 +110,9 @@ public class GameEngine {
             RoundSong song = songOpt.get();
             currentCorrectUserId = song.correctUserId();
             currentVideoId = song.videoId();
+            currentTitle = song.title();
+            currentArtist = song.artist();
+            currentCoverUrl = song.coverUrl();
 
             List<Integer> options = new ArrayList<>();
             options.add(currentCorrectUserId);
@@ -123,7 +131,7 @@ public class GameEngine {
             int duration = room.getSettings().roundDurationSeconds();
 
             RoundStart roundStartMsg = new RoundStart(
-                    currentRound, room.getSettings().rounds(), currentVideoId, duration, options);
+                    currentRound, room.getSettings().rounds(), currentVideoId, duration, options, currentCoverUrl);
 
             broadcast(CommandType.ROUND_START, gson.toJson(roundStartMsg));
 
@@ -145,6 +153,8 @@ public class GameEngine {
         if (votedUserId == currentCorrectUserId) {
             firstCorrectVoter.compareAndSet(null, userId);
         }
+
+        broadcast(CommandType.VOTE_PROGRESS, gson.toJson(new VoteProgress(currentRoundVotes.size(), room.getPlayers().size())));
 
         if (currentRoundVotes.size() >= room.getPlayers().size()) {
             if (roundTimerTask != null)
@@ -192,9 +202,14 @@ public class GameEngine {
             System.err.println("[GameEngine] Failed to save round to DB: " + e.getMessage());
         }
 
-        RoundEnd roundEndMsg = new RoundEnd(currentRound, currentCorrectUserId, results);
+        RoundEnd roundEndMsg = new RoundEnd(currentRound, currentCorrectUserId, results, currentVideoId, currentTitle, currentArtist, currentCoverUrl);
         broadcast(CommandType.ROUND_END, gson.toJson(roundEndMsg));
 
+    }
+
+    public void stop() {
+        roundActive.set(false);
+        timer.shutdownNow();
     }
 
     public void markPlayerReady(int userId) {
@@ -235,6 +250,7 @@ public class GameEngine {
             System.err.println("[GameEngine] Failed to close game in DB: " + e.getMessage());
         }
 
+        gameManager.removeGame(room.getRoomCode());
         timer.shutdown();
     }
 
