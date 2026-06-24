@@ -24,7 +24,8 @@ public enum CommandType {
     ROUND_START(310),
     ROUND_END(311),
     GAME_OVER(312),
-    READY_UPDATE(313);
+    READY_UPDATE(313),
+    VOTE_PROGRESS(314);
 
     private final int code;
 
