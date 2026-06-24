@@ -2,6 +2,12 @@ package client.net;
 
 import com.google.gson.Gson;
 import common.contracts.CommandType;
+import common.messages.GameMessages.GameOver;
+import common.messages.GameMessages.ReadyUpdate;
+import common.messages.GameMessages.RoundEnd;
+import common.messages.GameMessages.RoundStart;
+import common.messages.GameMessages.SubmitVote;
+import common.messages.GameMessages.VoteProgress;
 import common.messages.RoomMessages.JoinRoom;
 import common.messages.RoomMessages.KickPlayer;
 import common.messages.RoomMessages.LobbyUpdate;
@@ -117,5 +123,35 @@ public class GameApi {
 
     public void startGame(Runnable onDone) {
         conn.send(CommandType.START_GAME, session.userId(), null, body -> onDone.run());
+    }
+
+    public void submitVote(int roundNumber, int votedUserId) {
+        conn.send(CommandType.SUBMIT_VOTE, session.userId(), new SubmitVote(roundNumber, votedUserId), body -> {
+        });
+    }
+
+    public void playerReady() {
+        conn.send(CommandType.PLAYER_READY, session.userId(), null, body -> {
+        });
+    }
+
+    public void onRoundStart(Consumer<RoundStart> handler) {
+        conn.on(CommandType.ROUND_START, body -> handler.accept(gson.fromJson(body, RoundStart.class)));
+    }
+
+    public void onRoundEnd(Consumer<RoundEnd> handler) {
+        conn.on(CommandType.ROUND_END, body -> handler.accept(gson.fromJson(body, RoundEnd.class)));
+    }
+
+    public void onGameOver(Consumer<GameOver> handler) {
+        conn.on(CommandType.GAME_OVER, body -> handler.accept(gson.fromJson(body, GameOver.class)));
+    }
+
+    public void onReadyUpdate(Consumer<ReadyUpdate> handler) {
+        conn.on(CommandType.READY_UPDATE, body -> handler.accept(gson.fromJson(body, ReadyUpdate.class)));
+    }
+
+    public void onVoteProgress(Consumer<VoteProgress> handler) {
+        conn.on(CommandType.VOTE_PROGRESS, body -> handler.accept(gson.fromJson(body, VoteProgress.class)));
     }
 }
