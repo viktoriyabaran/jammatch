@@ -64,6 +64,14 @@ public class JTimer extends HBox {
         return secs / 60 + ":" + String.format("%02d", secs % 60);
     }
 
+    public void atSecondsRemaining(int seconds, Runnable action) {
+        remaining.addListener((obs, oldV, newV) -> {
+            if (oldV.doubleValue() > seconds && newV.doubleValue() <= seconds) {
+                action.run();
+            }
+        });
+    }
+
     public void stop() {
         timeline.stop();
     }

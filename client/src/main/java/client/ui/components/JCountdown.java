@@ -16,7 +16,15 @@ public class JCountdown extends StackPane {
     private final Label number = new Label();
 
     public JCountdown(int from, Runnable onComplete) {
+        this(from, onComplete, true);
+    }
+
+    public JCountdown(int from, Runnable onComplete, boolean scrim) {
         getStyleClass().add("countdown-overlay");
+        if (!scrim) {
+            getStyleClass().add("countdown-overlay--clear");
+            setMouseTransparent(true);
+        }
         setAlignment(Pos.CENTER);
 
         number.getStyleClass().add("countdown-num");

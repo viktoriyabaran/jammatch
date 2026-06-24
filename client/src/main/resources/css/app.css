@@ -457,6 +457,10 @@
     -fx-background-color: rgba(8, 4, 12, 0.82);
 }
 
+.countdown-overlay--clear {
+    -fx-background-color: transparent;
+}
+
 .countdown-num {
     -fx-font-family: "Space Grotesk Light";
     -fx-font-size: 200px;
