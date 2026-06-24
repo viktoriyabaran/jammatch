@@ -49,6 +49,7 @@ public class RoundResultScreen extends BorderPane {
         getStyleClass().add("bg-bloom");
 
         ctx.api().onRoomClosed(reason -> {
+            ctx.audio().stop();
             new Alert(Alert.AlertType.INFORMATION, reason).showAndWait();
             ctx.show(new MainMenuScreen(ctx));
         });

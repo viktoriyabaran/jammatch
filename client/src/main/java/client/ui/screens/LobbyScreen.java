@@ -37,6 +37,8 @@ public class LobbyScreen extends BorderPane {
             new Alert(Alert.AlertType.INFORMATION, reason).showAndWait();
             ctx.show(new MainMenuScreen(ctx));
         });
+        ctx.audio().warmUp();
+
         ctx.api().onLobbyUpdate(this::render);
         ctx.api().onRoundStart(rs -> {
             if (latest == null) {
@@ -157,7 +159,10 @@ public class LobbyScreen extends BorderPane {
 
     private HBox buildActions(boolean host) {
         var leaveRoom = new JButton("‹  LEAVE ROOM", JButton.Variant.GHOST, false,
-                () -> ctx.api().leaveRoom(() -> ctx.show(new MainMenuScreen(ctx))));
+                () -> ctx.api().leaveRoom(() -> {
+                    ctx.audio().stop();
+                    ctx.show(new MainMenuScreen(ctx));
+                }));
 
         var actions = new HBox(24, leaveRoom);
         actions.setAlignment(Pos.CENTER_LEFT);

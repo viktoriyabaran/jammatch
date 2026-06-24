@@ -58,6 +58,7 @@ public class GameResultScreen extends BorderPane {
         getStyleClass().add("bg-bloom");
 
         ctx.api().onRoomClosed(reason -> {
+            ctx.audio().stop();
             new Alert(Alert.AlertType.INFORMATION, reason).showAndWait();
             ctx.show(new MainMenuScreen(ctx));
         });
@@ -115,7 +116,10 @@ public class GameResultScreen extends BorderPane {
         boolean host = game.hostId() == ctx.session().userId();
 
         var leaveRoom = new JButton("‹  LEAVE ROOM", JButton.Variant.GHOST, false,
-                () -> ctx.api().leaveRoom(() -> ctx.show(new MainMenuScreen(ctx))));
+                () -> ctx.api().leaveRoom(() -> {
+                    ctx.audio().stop();
+                    ctx.show(new MainMenuScreen(ctx));
+                }));
         var footer = new HBox(24, leaveRoom);
         footer.setAlignment(Pos.CENTER_LEFT);
 

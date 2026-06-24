@@ -13,6 +13,7 @@ public class AppContext {
     private final Session session;
     private final GameApi api;
     private GameState game;
+    private AudioService audio;
 
     public AppContext(Router router, ServerConnection conn, Session session) {
         this.router = router;
@@ -39,6 +40,21 @@ public class AppContext {
 
     public void setGame(GameState game) {
         this.game = game;
+    }
+
+    public AudioService audio() {
+        if (audio == null) {
+            audio = new AudioService();
+            router.addOverlay(audio.view());
+        }
+        return audio;
+    }
+
+    public void disposeAudio() {
+        if (audio != null) {
+            audio.dispose();
+            audio = null;
+        }
     }
 
     public void show(Parent screen) {

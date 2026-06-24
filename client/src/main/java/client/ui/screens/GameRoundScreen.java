@@ -2,6 +2,7 @@ package client.ui.screens;
 
 import client.net.GameState;
 import client.ui.AppContext;
+import client.ui.AudioService;
 import client.ui.components.JCountdown;
 import client.ui.components.JLabel;
 import client.ui.components.JTimer;
@@ -58,6 +59,7 @@ public class GameRoundScreen extends StackPane {
         getChildren().add(content);
 
         ctx.api().onRoomClosed(reason -> {
+            ctx.audio().stop();
             new Alert(Alert.AlertType.INFORMATION, reason).showAndWait();
             ctx.show(new MainMenuScreen(ctx));
         });
@@ -85,6 +87,8 @@ public class GameRoundScreen extends StackPane {
         content.setTop(buildHeader(rs));
         content.setCenter(buildStage(rs));
         content.setBottom(buildVotes());
+
+        ctx.audio().play(rs.videoId(), AudioService.DEFAULT_OFFSET);
     }
 
     private VBox buildHeader(RoundStart rs) {
