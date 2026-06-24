@@ -88,7 +88,9 @@ public class GameRoundScreen extends StackPane {
         content.setCenter(buildStage(rs));
         content.setBottom(buildVotes());
 
-        ctx.audio().play(rs.videoId(), AudioService.DEFAULT_OFFSET);
+        if (!game.hostAudioOnly() || game.hostId() == ctx.session().userId()) {
+            ctx.audio().play(rs.videoId(), AudioService.DEFAULT_OFFSET);
+        }
     }
 
     private VBox buildHeader(RoundStart rs) {

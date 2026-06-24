@@ -83,8 +83,8 @@ public class GameApi {
         });
     }
 
-    public void createRoom(String roomName, int rounds, int roundDurationSeconds, Runnable onSuccess, ServerConnection.MessageHandler onError) {
-        conn.send(CommandType.CREATE_ROOM, session.userId(), new RoomConfig(roomName, 8, rounds, roundDurationSeconds), body -> {
+    public void createRoom(String roomName, int rounds, int roundDurationSeconds, boolean hostAudioOnly, Runnable onSuccess, ServerConnection.MessageHandler onError) {
+        conn.send(CommandType.CREATE_ROOM, session.userId(), new RoomConfig(roomName, 8, rounds, roundDurationSeconds, hostAudioOnly), body -> {
             if (ServerConnection.isError(body)) {
                 onError.handle(ServerConnection.errorMessage(body));
             } else {

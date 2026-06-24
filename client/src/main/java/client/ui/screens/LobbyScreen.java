@@ -83,6 +83,9 @@ public class LobbyScreen extends BorderPane {
                 JLabel.Type.SUBTITLE);
         var gameInfo = new VBox(6, roundCount, roundDuration);
         gameInfo.setAlignment(Pos.TOP_RIGHT);
+        if (update.settings().hostAudioOnly()) {
+            gameInfo.getChildren().add(new JLabel("HOST AUDIO ONLY", JLabel.Type.SUBTITLE));
+        }
 
         var spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);

@@ -8,11 +8,13 @@ import client.ui.components.JSystemMessage;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
 
@@ -53,6 +55,29 @@ public class CreateRoomScreen extends BorderPane {
         stepperRow.setMinWidth(COLUMN_WIDTH);
         stepperRow.setMaxWidth(COLUMN_WIDTH);
 
+        var checkMark = new Label("✓");
+        checkMark.getStyleClass().add("toggle-check");
+        checkMark.setVisible(false);
+        var checkBox = new StackPane(checkMark);
+        checkBox.getStyleClass().add("toggle-box");
+        var toggleLabel = new Label("PLAY AUDIO ON HOST ONLY");
+        toggleLabel.getStyleClass().add("toggle-label");
+        var hostAudioToggle = new HBox(12, checkBox, toggleLabel);
+        hostAudioToggle.getStyleClass().add("toggle");
+        hostAudioToggle.setAlignment(Pos.CENTER_LEFT);
+        hostAudioToggle.setCursor(Cursor.HAND);
+        hostAudioToggle.setMinWidth(COLUMN_WIDTH);
+        hostAudioToggle.setMaxWidth(COLUMN_WIDTH);
+        boolean[] hostAudioOnly = {false};
+        hostAudioToggle.setOnMouseClicked(e -> {
+            hostAudioOnly[0] = !hostAudioOnly[0];
+            checkMark.setVisible(hostAudioOnly[0]);
+            hostAudioToggle.getStyleClass().remove("toggle--on");
+            if (hostAudioOnly[0]) {
+                hostAudioToggle.getStyleClass().add("toggle--on");
+            }
+        });
+
         var createRoomButton = new JButton("CREATE ROOM", JButton.Variant.PRIMARY, () -> {
             String roomNameTrimmed = roomName.getText().trim();
             int roundNumber = rounds.value();
@@ -61,8 +86,7 @@ public class CreateRoomScreen extends BorderPane {
                 systemMessage.error("Enter a room name");
                 return;
             }
-            // todo: add after the playlist has been connected
-            ctx.api().createRoom(roomNameTrimmed,roundNumber, roundDuration,
+            ctx.api().createRoom(roomNameTrimmed, roundNumber, roundDuration, hostAudioOnly[0],
                     () -> ctx.show(new AddPlaylistScreen(ctx)),
                     systemMessage::error);
         });
@@ -70,11 +94,12 @@ public class CreateRoomScreen extends BorderPane {
         createRoomButton.setMaxWidth(COLUMN_WIDTH);
         systemMessage.markOnError(roomName, createRoomButton);
 
-        var column = new VBox(section, field, stepperRow, createRoomButton);
+        var column = new VBox(section, field, stepperRow, hostAudioToggle, createRoomButton);
         column.setAlignment(Pos.CENTER_LEFT);
         column.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
         VBox.setMargin(field, new Insets(24, 0, 0, 0));
         VBox.setMargin(stepperRow, new Insets(16, 0, 0, 0));
+        VBox.setMargin(hostAudioToggle, new Insets(18, 0, 0, 0));
         VBox.setMargin(createRoomButton, new Insets(24, 0, 0, 0));
 
         setTop(top);

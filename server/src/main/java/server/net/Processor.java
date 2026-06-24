@@ -112,7 +112,7 @@ public class Processor implements Runnable {
                 case CREATE_ROOM:
                     RoomConfig config = gson.fromJson(payloadStr, RoomConfig.class);
                     RoomSettings settings = new RoomSettings(config.maxPlayers(), config.rounds(),
-                            config.roundDurationSeconds());
+                            config.roundDurationSeconds(), config.hostAudioOnly());
                     int hostId = msg.getbUserId();
 
                     GameRoom newRoom = roomManager.createRoom(config.roomName(), hostId, settings);

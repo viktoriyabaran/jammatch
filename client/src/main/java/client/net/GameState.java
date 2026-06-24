@@ -15,6 +15,7 @@ public class GameState {
 
     private final int totalRounds;
     private final int hostId;
+    private final boolean hostAudioOnly;
     private final List<Integer> order = new ArrayList<>();
     private final Map<Integer, String> nicknames = new HashMap<>();
     private final Map<Integer, Integer> badges = new HashMap<>();
@@ -24,6 +25,7 @@ public class GameState {
     public GameState(LobbyUpdate lobby) {
         this.totalRounds = lobby.settings().rounds();
         this.hostId = lobby.hostId();
+        this.hostAudioOnly = lobby.settings().hostAudioOnly();
         List<PlayerInfo> players = lobby.players();
         for (int i = 0; i < players.size(); i++) {
             PlayerInfo p = players.get(i);
@@ -41,6 +43,10 @@ public class GameState {
 
     public int hostId() {
         return hostId;
+    }
+
+    public boolean hostAudioOnly() {
+        return hostAudioOnly;
     }
 
     public List<Integer> order() {

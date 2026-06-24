@@ -4,7 +4,7 @@ import java.util.List;
 
 public final class RoomMessages {
 
-    public record RoomConfig(String roomName, int maxPlayers, int rounds, int roundDurationSeconds) {
+    public record RoomConfig(String roomName, int maxPlayers, int rounds, int roundDurationSeconds, boolean hostAudioOnly) {
     }
 
     public record JoinRoom(String roomCode) {
@@ -16,7 +16,7 @@ public final class RoomMessages {
     public record CreateRoomResult(String roomCode) {
     }
 
-    public record RoomSettings(int maxPlayers, int rounds, int roundDurationSeconds) {
+    public record RoomSettings(int maxPlayers, int rounds, int roundDurationSeconds, boolean hostAudioOnly) {
     }
 
     public record PlayerInfo(int id, String nickname, boolean hasPlaylist, int songCount) {

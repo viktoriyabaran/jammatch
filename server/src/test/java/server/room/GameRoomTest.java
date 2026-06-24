@@ -14,7 +14,7 @@ class GameRoomTest {
 
     @Test
     void testConcurrentJoins() throws InterruptedException {
-        RoomSettings settings = new RoomSettings(5, 3, 30);
+        RoomSettings settings = new RoomSettings(5, 3, 30, false);
         GameRoom room = new GameRoom("TST123", "Race Room", 1, settings);
 
         // Хост займає перше місце

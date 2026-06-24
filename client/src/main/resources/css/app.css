@@ -590,3 +590,36 @@
     -fx-background-color: linear-gradient(to right, rgba(255,61,154,0.12), rgba(255,61,154,0.02));
     -fx-effect: dropshadow(gaussian, rgba(255,61,154,0.28), 26, 0, 0, 0);
 }
+.toggle-box {
+    -fx-min-width: 22; -fx-min-height: 22;
+    -fx-max-width: 22; -fx-max-height: 22;
+    -fx-background-color: transparent;
+    -fx-border-color: -line-mute;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-alignment: center;
+}
+
+.toggle:hover .toggle-box { -fx-border-color: -line-bright; }
+
+.toggle--on .toggle-box {
+    -fx-background-color: -accent-pink;
+    -fx-border-color: -accent-pink;
+}
+
+.toggle-check {
+    -fx-text-fill: -accent-text;
+    -fx-font-family: "Space Mono";
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.toggle-label {
+    -fx-font-family: "Space Mono";
+    -fx-font-size: 11px;
+    -fx-text-fill: -ink-dim;
+}
+
+.toggle:hover .toggle-label { -fx-text-fill: -ink; }
+.toggle--on .toggle-label { -fx-text-fill: -ink; }

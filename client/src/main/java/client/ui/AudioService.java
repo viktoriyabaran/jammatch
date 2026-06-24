@@ -1,6 +1,7 @@
 package client.ui;
 
 import com.sun.net.httpserver.HttpServer;
+import javafx.application.Platform;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -205,7 +206,7 @@ public class AudioService {
                 fadeOutCrackle();
                 if (!introFadeDone) {
                     introFadeDone = true;
-                    engine.executeScript("fadeTo(" + INTRO_FADE_TARGET + ", " + INTRO_FADE_MS + ")");
+                    Platform.runLater(() -> engine.executeScript("fadeTo(" + INTRO_FADE_TARGET + ", " + INTRO_FADE_MS + ")"));
                 }
             }
         }

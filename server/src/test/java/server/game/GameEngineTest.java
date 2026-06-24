@@ -18,7 +18,7 @@ class GameEngineTest {
 
     @Test
     void testConcurrentVotingRaceCondition() throws Exception {
-        RoomSettings settings = new RoomSettings(100, 3, 30);
+        RoomSettings settings = new RoomSettings(100, 3, 30, false);
         GameRoom room = new GameRoom("TEST99", "Race Room", 1, settings);
         for (int i = 1; i <= 100; i++) {
             room.addPlayer(i, "Player" + i, true);
