@@ -23,7 +23,8 @@ public class App extends Application {
         var ctx = new AppContext(router, conn, session);
 
         ctx.show(new LoginScreen(ctx));
-        stage.setTitle("JamMatch");
+        stage.setTitle("jammatch");
+        stage.setMaximized(true);
         stage.show();
     }
 
