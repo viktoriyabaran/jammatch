@@ -2,6 +2,7 @@ package server.room;
 
 import common.messages.RoomMessages.RoomSettings;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -47,5 +48,11 @@ public class RoomManager {
         return rooms.values().stream()
                 .filter(r -> r.getPlayers().stream().anyMatch(p -> p.id() == userId))
                 .findFirst();
+    }
+
+    public List<GameRoom> getRoomsByUserId(int userId) {
+        return rooms.values().stream()
+                .filter(r -> r.getPlayers().stream().anyMatch(p -> p.id() == userId))
+                .toList();
     }
 }

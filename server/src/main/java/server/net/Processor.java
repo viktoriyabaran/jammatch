@@ -42,6 +42,7 @@ public class Processor implements Runnable {
     private static final AtomicInteger NEXT_ID = new AtomicInteger(1);
     private static final ExecutorService RESOLUTION_POOL = Executors.newFixedThreadPool(4);
     private final int id = NEXT_ID.getAndIncrement();
+    private volatile int userId = 0;
     private final BlockingQueue<Packet> input;
     private final BlockingQueue<Packet> output;
 
@@ -97,10 +98,11 @@ public class Processor implements Runnable {
             switch (command) {
                 case CLIENT_LOGIN:
                     ClientLogin loginData = gson.fromJson(payloadStr, ClientLogin.class);
-                    int userId = userDao.findOrCreateByToken(loginData.clientToken(), loginData.nickname());
+                    int loggedInUserId = userDao.findOrCreateByToken(loginData.clientToken(), loginData.nickname());
 
-                    sessionManager.register(userId, output);
-                    return buildSuccess(request, String.valueOf(userId));
+                    this.userId = loggedInUserId;
+                    sessionManager.register(loggedInUserId, output);
+                    return buildSuccess(request, String.valueOf(loggedInUserId));
 
                 case LOOKUP_NICKNAME:
                     LookupNickname lookupData = gson.fromJson(payloadStr, LookupNickname.class);
@@ -160,8 +162,7 @@ public class Processor implements Runnable {
                         return buildError(request, "Game already started");
                     }
 
-                    GameEngine engine = new GameEngine(rToStart, sessionManager, roomDao,
-                            gameDao, participantDao, songDao, roundDao);
+                    GameEngine engine = new GameEngine(rToStart, gameManager, sessionManager, roomDao, gameDao, participantDao, songDao, roundDao);
                     gameManager.addGame(rToStart.getRoomCode(), engine);
                     return buildSuccess(request, "{\"status\":\"OK\"}");
 
@@ -179,27 +180,8 @@ public class Processor implements Runnable {
 
                 case LEAVE_ROOM:
                     int leaveUserId = msg.getbUserId();
-                    Optional<GameRoom> userRoom = roomManager.getRoomByUserId(leaveUserId);
-
-                    if (userRoom.isPresent()) {
-                        GameRoom room = userRoom.get();
-                        if (room.getHostId() == leaveUserId) {
-                            String code = room.getRoomCode();
-                            java.util.List<PlayerInfo> playersToNotify = room.getPlayers();
-
-                            roomManager.removeRoom(code);
-                            roomDao.closeRoom(code);
-
-                            for (PlayerInfo p : playersToNotify) {
-                                if (p.id() != leaveUserId) {
-                                    sendRoomClosed(p.id(), "Host left the room");
-                                }
-                            }
-                        } else {
-                            room.removePlayer(leaveUserId);
-                            broadcastLobbyUpdate(room);
-                        }
-                    }
+                    roomManager.getRoomByUserId(leaveUserId)
+                            .ifPresent(room -> leaveRoom(room, leaveUserId, "Host left the room"));
                     return buildSuccess(request, "{\"status\":\"OK\"}");
 
                 case KICK_PLAYER:
@@ -304,6 +286,45 @@ public class Processor implements Runnable {
             return "Playlist is private or unavailable";
         }
         return "Couldn't reach YouTube, please try again";
+    }
+
+    public void onDisconnect() {
+        if (userId <= 0) {
+            return;
+        }
+        try {
+            for (GameRoom room : roomManager.getRoomsByUserId(userId)) {
+                leaveRoom(room, userId, "Host disconnected");
+            }
+            sessionManager.remove(userId);
+        } catch (Exception e) {
+            System.err.println("[Processor] Disconnect cleanup failed for user " + userId + ": " + e.getMessage());
+        }
+    }
+
+    private void leaveRoom(GameRoom room, int userId, String hostLeftReason) {
+        try {
+            if (room.getHostId() == userId) {
+                String code = room.getRoomCode();
+                List<PlayerInfo> playersToNotify = room.getPlayers();
+
+                gameManager.getGame(code).ifPresent(GameEngine::stop);
+                gameManager.removeGame(code);
+                roomManager.removeRoom(code);
+                roomDao.closeRoom(code);
+
+                for (PlayerInfo p : playersToNotify) {
+                    if (p.id() != userId) {
+                        sendRoomClosed(p.id(), hostLeftReason);
+                    }
+                }
+            } else {
+                room.removePlayer(userId);
+                broadcastLobbyUpdate(room);
+            }
+        } catch (Exception e) {
+            System.err.println("[Processor] leaveRoom failed for user " + userId + ": " + e.getMessage());
+        }
     }
 
     private void sendRoomClosed(int userId, String reason) {

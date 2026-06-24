@@ -72,6 +72,7 @@ public class GameServer {
             GameDao gameDao, GameParticipantDao participantDao,
             GameSongDao songDao, GameManager gameManager, RoundDao roundDao) {
         ExecutorService pipeline = Executors.newFixedThreadPool(4);
+        Processor processor = null;
         try {
             MessageReceiver receiver = new SocketMessageReceiver(socket);
             MessageSender sender = new SocketMessageSender(socket);
@@ -83,8 +84,8 @@ public class GameServer {
 
             pipeline.submit(new Decryptor(incoming, decoded, crypto));
 
-            pipeline.submit(new Processor(decoded, responses, userDao, roomDao, roomManager, sessionManager,
-                    savedPlaylistDao, playlistResolver, gameDao, participantDao, songDao, gameManager, roundDao));
+            processor = new Processor(decoded, responses, userDao, roomDao, roomManager, sessionManager, savedPlaylistDao, playlistResolver, gameDao, participantDao, songDao, gameManager, roundDao);
+            pipeline.submit(processor);
 
             pipeline.submit(new Encryptor(responses, outgoing, crypto));
             pipeline.submit(new Sender(sender, outgoing));
@@ -94,6 +95,9 @@ public class GameServer {
         } catch (IOException e) {
             System.err.println("[Server] Error: " + e.getMessage());
         } finally {
+            if (processor != null) {
+                processor.onDisconnect();
+            }
             pipeline.shutdownNow();
             try {
                 socket.close();
