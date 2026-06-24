@@ -54,7 +54,7 @@ public class GameRoundScreen extends StackPane {
         this.options = rs.options();
         this.totalVoters = game.order().size();
 
-        getStyleClass().add("bg-bloom");
+        getStyleClass().add("bg-halo");
         content.setPadding(new Insets(36, 80, 36, 80));
         getChildren().add(content);
 

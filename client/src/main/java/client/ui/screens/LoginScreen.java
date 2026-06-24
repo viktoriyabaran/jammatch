@@ -18,8 +18,8 @@ public class LoginScreen extends BorderPane {
     private static final double COLUMN_WIDTH = 380;
 
     public LoginScreen(AppContext ctx) {
-        var wordmark = new JLabel("SSSLY", JLabel.Type.WORDMARK);
-        var subtitle = new JLabel("GUESS YOUR SPOTY JAMS", JLabel.Type.SUBTITLE);
+        var wordmark = new JLabel("JAMMATCH", JLabel.Type.WORDMARK);
+        var subtitle = new JLabel("GUESS YOUR JAMS", JLabel.Type.SUBTITLE);
         var header = new VBox(6, wordmark, subtitle);
 
         var systemMessage = new JSystemMessage();
@@ -50,16 +50,12 @@ public class LoginScreen extends BorderPane {
         VBox.setMargin(field, new Insets(56, 0, 0, 0));
         VBox.setMargin(continueButton, new Insets(16, 0, 0, 0));
 
-        var dot = new JLabel("◉", JLabel.Type.SECTION);
-        var contact = new JLabel("@sssly", JLabel.Type.SECTION);
-        var footerLeft = new HBox(8, dot, contact);
+        var contact = new JLabel("By Sofiia Zakharuk, Viktoriia Baran", JLabel.Type.SECTION);
+        var footerLeft = new HBox(8, contact);
         footerLeft.setAlignment(Pos.CENTER_LEFT);
-        var version = new JLabel("v0.1.0", JLabel.Type.META);
         var footer = new BorderPane();
         footer.setLeft(footerLeft);
-        footer.setRight(version);
         BorderPane.setAlignment(footerLeft, Pos.CENTER_LEFT);
-        BorderPane.setAlignment(version, Pos.CENTER_RIGHT);
 
         setTop(top);
         setCenter(column);
