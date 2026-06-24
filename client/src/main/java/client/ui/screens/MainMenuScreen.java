@@ -37,7 +37,7 @@ public class MainMenuScreen extends BorderPane {
 
         var about = new JLabel("ABOUT / HOW TO PLAY  ›", JLabel.Type.NAV);
         about.setCursor(Cursor.HAND);
-        about.setOnMouseClicked(e -> { /* TODO: ctx.show(new AboutScreen(ctx)); */ });
+        about.setOnMouseClicked(e -> ctx.show(new AboutScreen(ctx)));
 
         var column = new VBox(header, createRoomButton, joinRoomButton, about);
         column.setAlignment(Pos.CENTER_LEFT);
