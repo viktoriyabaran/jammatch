@@ -1,6 +1,7 @@
 package client.ui;
 
 import client.net.GameApi;
+import client.net.GameState;
 import client.net.ServerConnection;
 import client.net.Session;
 import javafx.scene.Parent;
@@ -11,6 +12,7 @@ public class AppContext {
     private final ServerConnection conn;
     private final Session session;
     private final GameApi api;
+    private GameState game;
 
     public AppContext(Router router, ServerConnection conn, Session session) {
         this.router = router;
@@ -29,6 +31,14 @@ public class AppContext {
 
     public GameApi api() {
         return api;
+    }
+
+    public GameState game() {
+        return game;
+    }
+
+    public void setGame(GameState game) {
+        this.game = game;
     }
 
     public void show(Parent screen) {
