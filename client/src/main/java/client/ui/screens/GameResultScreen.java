@@ -1,8 +1,11 @@
 package client.ui.screens;
 
+import client.net.GameState;
 import client.ui.AppContext;
 import client.ui.components.JButton;
 import client.ui.components.JLabel;
+import common.messages.GameMessages.GameOver;
+import common.messages.GameMessages.LeaderboardEntry;
 import javafx.animation.FadeTransition;
 import javafx.animation.Interpolator;
 import javafx.animation.ParallelTransition;
@@ -33,26 +36,24 @@ public class GameResultScreen extends BorderPane {
         boolean podium() { return rank <= 3; }
     }
 
-    private static final int TOTAL_GUESSES = 12;
     private static final double REVEAL_MS = 380;
     private static final double INITIAL_DELAY_MS = 420;
     private static final double STAGGER_MS = 260;
     private static final double RAMP_MS = 70;
     private static final double WINNER_SUSPENSE_MS = 1100;
 
+    private final AppContext ctx;
+    private final GameState game;
+    private final int totalGuesses;
+    private final List<Standing> standings;
     private final List<HBox> rows = new ArrayList<>();
 
-    private static final List<Standing> STANDINGS = List.of(
-            new Standing(1, "dmytro", 2, 9, 1240),
-            new Standing(2, "vi", 1, 7, 980),
-            new Standing(3, "marko", 4, 5, 540),
-            new Standing(4, "olena", 3, 5, 410),
-            new Standing(5, "sofi", 5, 4, 360),
-            new Standing(6, "taras", 6, 3, 290),
-            new Standing(7, "mia", 7, 2, 180),
-            new Standing(8, "yurii", 2, 1, 90));
+    public GameResultScreen(AppContext ctx, GameOver go) {
+        this.ctx = ctx;
+        this.game = ctx.game();
+        this.totalGuesses = game.totalRounds();
+        this.standings = standings(go);
 
-    public GameResultScreen(AppContext ctx) {
         setPadding(new Insets(36, 80, 36, 80));
         getStyleClass().add("bg-bloom");
 
@@ -60,12 +61,25 @@ public class GameResultScreen extends BorderPane {
             new Alert(Alert.AlertType.INFORMATION, reason).showAndWait();
             ctx.show(new MainMenuScreen(ctx));
         });
+        ctx.api().onRoundStart(rs -> {
+            game.applyRoundStart(rs);
+            ctx.show(new GameRoundScreen(ctx, rs));
+        });
 
         setTop(header());
         setCenter(board());
-        setBottom(footer(ctx));
+        setBottom(footer());
 
         revealRows();
+    }
+
+    private List<Standing> standings(GameOver go) {
+        var result = new ArrayList<Standing>();
+        for (LeaderboardEntry e : go.leaderboard()) {
+            result.add(new Standing(e.rank(), e.nickname(), game.badge(e.userId()),
+                    game.correct(e.userId()), e.score()));
+        }
+        return result;
     }
 
     private VBox header() {
@@ -86,8 +100,8 @@ public class GameResultScreen extends BorderPane {
         right.setPercentWidth(50);
         grid.getColumnConstraints().addAll(left, right);
 
-        for (int i = 0; i < STANDINGS.size(); i++) {
-            var row = row(STANDINGS.get(i));
+        for (int i = 0; i < standings.size(); i++) {
+            var row = row(standings.get(i));
             rows.add(row);
             grid.add(row, i % 2, i / 2);
         }
@@ -97,14 +111,26 @@ public class GameResultScreen extends BorderPane {
         return grid;
     }
 
-    private HBox footer(AppContext ctx) {
-        var playAgain = new JButton("PLAY AGAIN", JButton.Variant.PRIMARY, () -> ctx.show(new LobbyScreen(ctx)));
-        playAgain.setMinWidth(380);
-        playAgain.setMaxWidth(380);
-        var leave = new JButton("LEAVE ROOM", JButton.Variant.GHOST, false, () -> ctx.show(new MainMenuScreen(ctx)));
+    private HBox footer() {
+        boolean host = game.hostId() == ctx.session().userId();
 
-        var footer = new HBox(24, playAgain, leave);
+        var leaveRoom = new JButton("‹  LEAVE ROOM", JButton.Variant.GHOST, false,
+                () -> ctx.api().leaveRoom(() -> ctx.show(new MainMenuScreen(ctx))));
+        var footer = new HBox(24, leaveRoom);
         footer.setAlignment(Pos.CENTER_LEFT);
+
+        if (host) {
+            var playAgain = new JButton("PLAY AGAIN", JButton.Variant.PRIMARY, () -> ctx.api().startGame(() -> {
+            }));
+            playAgain.setMaxWidth(Double.MAX_VALUE);
+            HBox.setHgrow(playAgain, Priority.ALWAYS);
+            footer.getChildren().add(playAgain);
+        } else {
+            var spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+            var waiting = new JLabel("WAITING FOR HOST…", JLabel.Type.SUBTITLE);
+            footer.getChildren().addAll(spacer, waiting);
+        }
         BorderPane.setMargin(footer, new Insets(24, 0, 0, 0));
         return footer;
     }
@@ -171,7 +197,7 @@ public class GameResultScreen extends BorderPane {
         var spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        var count = label(s.correct() + " / " + TOTAL_GUESSES, "go-count");
+        var count = label(s.correct() + " / " + totalGuesses, "go-count");
         count.setMinWidth(54);
         count.setAlignment(Pos.CENTER_RIGHT);
 
