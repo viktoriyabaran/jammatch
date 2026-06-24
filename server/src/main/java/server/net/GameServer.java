@@ -32,7 +32,7 @@ public class GameServer {
     private static final int PORT = 2503;
 
     public static void main(String[] args) throws IOException {
-        CryptoService crypto = new CryptoService("StoreServerTest1".getBytes(StandardCharsets.UTF_8));
+        CryptoService crypto = new CryptoService(System.getenv().getOrDefault("JAMMATCH_SECRET_KEY", "StoreServerTest1").getBytes(StandardCharsets.UTF_8));
         ExecutorService clientThreads = Executors.newCachedThreadPool();
 
         ConnectionPool pool = new ConnectionPool();

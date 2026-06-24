@@ -7,6 +7,12 @@ if [ -n "${1:-}" ]; then
   export JAMMATCH_CLIENT_TOKEN="$1"
 fi
 
+if [ -f .env ]; then
+  set -a
+  source ./.env
+  set +a
+fi
+
 mvn -pl common -am install -DskipTests -q
 
 mvn -pl client org.openjfx:javafx-maven-plugin:0.0.8:run

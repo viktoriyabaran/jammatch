@@ -25,10 +25,9 @@ public class ServerConnection {
         void handle(String body);
     }
 
-    private static final String HOST = "localhost";
+    private static final String HOST = System.getenv().getOrDefault("JAMMATCH_SERVER_HOST", "localhost");
     private static final int PORT = 2503;
-    private static final CryptoService crypto =
-            new CryptoService("StoreServerTest1".getBytes(StandardCharsets.UTF_8));
+    private static final CryptoService crypto = new CryptoService(System.getenv().getOrDefault("JAMMATCH_SECRET_KEY", "StoreServerTest1").getBytes(StandardCharsets.UTF_8));
 
     private final Gson gson = new Gson();
 
